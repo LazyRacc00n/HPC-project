@@ -1,0 +1,21 @@
+
+Se non funziona la sincronanizzazione con la cartella di git (Lo abbiamo già fatto entrambi, non dovrebbe servire più):
+
+cd c:\ABC
+git init .
+git config --global user.name <yourGitHubAccount>
+git config --global user.email <yourGitHubEmailAccount>
+git add .
+
+git status
+# edit .gitignore to ignore folder you don't want
+
+git commit -m "first commit"
+git remote add origin https://github.com/<yourGitHubAccount>/<yourRepo.git>
+git push -u origin master
+
+------------------------------------------------------------------------------
+
+Per pushare: 
+
+Se non rileva i cambiamenti automaticamente (a volte capita), prima di fare push/pull fare nel terminale: git fetch
