@@ -1,0 +1,38 @@
+COMPILATION:
+
+    - mpiicc file.c -o nomeFile
+
+EXECUTION:
+
+    -mpiexec -hostfile host_list.txt -perhost 1 -np 11 /bin/hostname
+
+
+------------------------------------- MPI FUNCTIONS AND VARIABLES -----------------------------------------------
+BASICA FUNNC:
+
+    - int MPI_Init(int *argc, char ***argv) --> Must be first MPI call: initializes the message passing routines --> before no MPI calls are allowed
+
+    - int MPI_Finalize() --> after no MPI calls are allowed
+
+    - MPI_COMM_WORLD  --> communicator for all processes
+
+    - MPI_Comm_size(MPI_Comm comm, int *size) --> number of processes are associated with a communicator
+
+    - MPI_Comm_rank(MPI_Comm comm, int *rank) --> ID of a processor in a communicator comm
+
+    - int MPI_Abort( MPI_Comm comm, int errorcode ) --> Terminates all MPI processes associated with the communicator comm
+
+COMMUNICATION:
+
+    -communicator must be the same for sender and receiver, tags must match, buffer must be large enough
+
+    -SEND --> int MPI_Send(void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm);
+
+    -RECEIVE --> int MPI_Recv (void *buf, int count, MPI_Datatype type, int source, int tag, MPI_Comm comm, MPI_Status *status);
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------
