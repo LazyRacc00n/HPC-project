@@ -19,3 +19,4 @@ git push -u origin master
 Per pushare: 
 
 Se non rileva i cambiamenti automaticamente (a volte capita), prima di fare push/pull fare nel terminale: git fetch
+oppure andare nel menu di git: Pull,Push -> Fetch
