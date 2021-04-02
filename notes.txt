@@ -3,16 +3,16 @@ Se non funziona la sincronanizzazione con la cartella di git (Lo abbiamo già fa
 
 cd c:\ABC
 git init .
-git config --global user.name <yourGitHubAccount>
-git config --global user.email <yourGitHubEmailAccount>
+git config --global user.name LazyRacc00n
+git config --global user.email jacopo.dapueto@gmail.com
 git add .
 
 git status
 # edit .gitignore to ignore folder you don't want
 
 git commit -m "first commit"
-git remote add origin https://github.com/<yourGitHubAccount>/<yourRepo.git>
-git push -u origin master
+git remote add origin https://github.com/LazyRacc00n/HPC-project
+git push -u origin main
 
 ------------------------------------------------------------------------------
 
