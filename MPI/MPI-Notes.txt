@@ -26,14 +26,21 @@ COMMUNICATION:
 
     - communicator must be the same for sender and receiver, tags must match, buffer must be large enough
 
-    - SEND --> int MPI_Send(void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm);
+    - SEND (blocking)--> int MPI_Send(void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm);
 
-    - RECEIVE --> int MPI_Recv (void *buf, int count, MPI_Datatype type, int source, int tag, MPI_Comm comm, MPI_Status *status);
+    - RECEIVE (blocking) --> int MPI_Recv (void *buf, int count, MPI_Datatype type, int source, int tag, MPI_Comm comm, MPI_Status *status);
 
     - MPI_Status: has fields: int MPI_SOURCE; int MPI_TAG; int MPI_ERROR;
 
     - MPI_Get_count( &status, datatype, &count ); --> used to know how many elements of type datatype have actually been received
 
+    - SEND (NON-blocking) --> int MPI_Isend(void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm, MPI_Request *req);
+    
+    - RECEIVE (NON-blocking) --> int MPI_Irecv (void *buf, int count, MPI_Datatype type, int source, int tag, MPI_Comm comm, MPI_Request *req);
+
+    Wait for Complection:
+        int MPI_Wait(MPI_Request *req, MPI_Status *status);
+        Int MPI_Waitall (count,&array_of_requests,&array_of_statuses) ;
 
 
 
