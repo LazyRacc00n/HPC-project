@@ -42,6 +42,30 @@ COMMUNICATION:
         int MPI_Wait(MPI_Request *req, MPI_Status *status);
         Int MPI_Waitall (count,&array_of_requests,&array_of_statuses) ;
 
+MPI PARALLEL COMPUTING:
+
+MPI_Barrier(comm):
+    – Synchronization operation. Creates a barrier synchronization in a group. Each rocess, when
+    reaching the MPI_Barrier call, blocks until all processes in the group reach the same MPI_Barrier
+    call. Then all processes can continue.
+
+MPI_Bcast(&buffer, count, datatype, root, comm) :
+    – Broadcasts (sends) a message from the process with rank "root" to all other processes in the group.
+
+MPI_Scatter(&sendbuf, sendcnt, sendtype, &recvbuf, recvcnt, recvtype, root, comm):
+    – Distributes distinct messages from a single source process to each process in the group
+
+MPI_Gather(&sendbuf, sendcnt, sendtype, &recvbuf, recvcount, recvtype, root, comm):
+    – Gathers distinct messages from each process in the group to a single destination process. This
+    routine is the reverse operation of MPI_Scatter
+
+MPI_Allgather(&sendbuf, sendcount, sendtype, &recvbuf, recvcount, recvtype, comm):
+    – Concatenation of data to all processes in a group. Each process in the group, in effect, performs a
+    one-to-all broadcasting operation within the group
+
+MPI_Reduce(&sendbuf, &recvbuf, count, datatype, op, root, comm):
+    – Applies a reduction operation on all processes in the group and places the result in one process
+
 
 
 
