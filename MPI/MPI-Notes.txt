@@ -42,7 +42,7 @@ COMMUNICATION:
         int MPI_Wait(MPI_Request *req, MPI_Status *status);
         Int MPI_Waitall (count,&array_of_requests,&array_of_statuses) ;
 
-MPI PARALLEL COMPUTING:
+MPI PARALLEL COMPUTING - COLLECTIVE COMMUNICATION:
 
 MPI_Barrier(comm):
     – Synchronization operation. Creates a barrier synchronization in a group. Each rocess, when
@@ -59,12 +59,24 @@ MPI_Gather(&sendbuf, sendcnt, sendtype, &recvbuf, recvcount, recvtype, root, com
     – Gathers distinct messages from each process in the group to a single destination process. This
     routine is the reverse operation of MPI_Scatter
 
-MPI_Allgather(&sendbuf, sendcount, sendtype, &recvbuf, recvcount, recvtype, comm):
+MPI_Allgather(&sendbuf, sendcount, sendtype, &recvbuf, recvcount, recvtype, comm)
     – Concatenation of data to all processes in a group. Each process in the group, in effect, performs a
     one-to-all broadcasting operation within the group
 
 MPI_Reduce(&sendbuf, &recvbuf, count, datatype, op, root, comm):
     – Applies a reduction operation on all processes in the group and places the result in one process
+
+MPI_Reduce_scatter(&sendbuf, &recvbuf, recvcount, datatype, op, comm):
+    – Collective computation operation + data movement. First does an element-wise reduction on a
+    vector across all processes in the group. Next, the result vector is split into disjoint segments and
+    distributed across the processes. This is equivalent to an MPI_Reduce followed by an MPI_Scatter
+    operation.
+
+MPI_Scan(&sendbuf, &recvbuf, count, datatype, op, comm)
+    – Performs a scan with respect to a reduction operation across a process group.
+
+MPI_Alltoall(&sendbuf, sendcount, sendtype, &recvbuf, recvcnt, recvtype, comm)
+    – Data movement operation. Each process in a group performs
 
 
 
