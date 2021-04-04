@@ -57,6 +57,7 @@ int main( int argc, char *argv[] )
 			MPI_FLOAT, /* oldtype */
 			&rowtype   /* newtype */
 			);
+    // Instanciate a the new DataType
     MPI_Type_commit(&rowtype);
 
     if ( rank == 0 && numtasks == 1 ) {

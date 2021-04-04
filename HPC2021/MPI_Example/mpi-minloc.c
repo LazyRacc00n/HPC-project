@@ -60,9 +60,12 @@ int main(int argc, char *argv[])
                 );
 
     /* At this point, the answer resides on process root */
+
+    printf("\n\nThe node %d send the value %f with idx %d\n\n", my_rank, in.val, in.idx);
+
     if (0 == my_rank) {
         /* read ranks out */
-        printf("The minimum is %f with idx %d\n", out.val, out.idx);
+        printf("The maximum is %f with idx %d\n", out.val, out.idx);
     }
 
     MPI_Finalize();
