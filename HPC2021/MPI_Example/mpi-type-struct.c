@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
     MPI_Type_get_extent(MPI_FLOAT, &lb, &extent);    
     displs[0] = 0;
     
-    displs[1] = 4 * extent;
+    displs[1] = blklens[0] * extent;
     printf("\n\ndispl[1]: %d\n\n", displs[1]);
     /* define structured type and commit it */
     MPI_Type_struct(2,                  /* count                        */
