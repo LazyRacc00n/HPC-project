@@ -94,8 +94,6 @@ void game(int w, int h, int t) {
 	if (x > 1000) printbig(univ, w, h,1);
 }
  
- 
-
  // IDEA: Split the starting matrix in block of equal size. 
  	
 	 //    Then each block is assigned to a processor to work on it.
@@ -107,8 +105,7 @@ void game(int w, int h, int t) {
 
 int main(int c, char **v) {
 	
-	int rank, size, err;
-	int dims[2];
+	int rank, size, err, MPI_root = 0;
 
 	err = MPI_Init( &c , &v);
 
@@ -123,36 +120,36 @@ int main(int c, char **v) {
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
 
-	int w = 0, h = 0, t = 0;
-	if (c > 1) w = atoi(v[1]);
-	if (c > 2) h = atoi(v[2]);
+	int nCols = 0, nRows = 0, t = 0;
+	if (c > 1) nCols = atoi(v[1]);
+	if (c > 2) nRows = atoi(v[2]);
 	if (c > 3) t = atoi(v[3]);
-	if (w <= 0) w = 30;
-	if (h <= 0) h = 30;
+	if (nCols <= 0) nCols = 30;
+	if (nRows <= 0) nRows = 30;
 	if (t <= 0) t = 100;
 	
-	//printf("\nProcess Number %d \n ", rank);
-	
-	//if( rank == 0)
-		//game(w, h, t);
+	//send number of columns and number of rows to each process
 
-	dims[0] = h;
-	dims[1] = w;
-	
-	if(rank == 0){
-		MPI_Dims_create( size , 2 , dims);
-		printf("BLOCKS DIMENTION: %d x %d", dims[0], dims[1]);
-	}
-		
+	// send rows
+	MPI_Bcast( &nRows, 1 , MPI_INT , MPI_root , MPI_COMM_WORLD);
+	MPI_Bcast( &nCols, 1 , MPI_INT , MPI_root , MPI_COMM_WORLD);
+	MPI_Bcast( &t, 1 , MPI_INT , MPI_root , MPI_COMM_WORLD);
 
 	
+	//Each process compute the size of its chunks
+	int n_rows_local = nRows / size;
+	//if the division has remains are added to the last process;
+	if( rank == size -1 )n_rows_local += nRows % size;
+	
+	// ghost colums are which that communicate
+	int n_rows_local_with_ghost = n_rows_local + 2;
+	int n_cols_with_ghost = nCols + 2;
 
-
-
+	printf("\nRank: %d - Rows local: %d - Cols: %d\n", rank, n_rows_local, nCols);
 
 	err= MPI_Finalize();
 
-
+	return EXIT_SUCCESS;
 
 }
 

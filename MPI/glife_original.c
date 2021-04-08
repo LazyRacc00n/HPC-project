@@ -103,6 +103,9 @@ int main(int c, char **v) {
 	if (w <= 0) w = 30;
 	if (h <= 0) h = 30;
 	if (t <= 0) t = 100;
+
+
+	
 	game(w, h, t);
 }
 
