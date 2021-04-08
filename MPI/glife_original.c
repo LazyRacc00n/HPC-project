@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "mpi.h"
  
 void show(void *u, int w, int h) {
 	int x,y;
@@ -97,22 +96,6 @@ void game(int w, int h, int t) {
  
  
 int main(int c, char **v) {
-	
-	int rank, size, err;
-
-	err = MPI_Init( &c , &v);
-
-	if( err != 0 ){
-
-		printf("\nError in MPI initialization!\n");
-		MPI_Abort( MPI_COMM_WORLD , err);
-	}
-
-
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-
 	int w = 0, h = 0, t = 0;
 	if (c > 1) w = atoi(v[1]);
 	if (c > 2) h = atoi(v[2]);
@@ -120,18 +103,6 @@ int main(int c, char **v) {
 	if (w <= 0) w = 30;
 	if (h <= 0) h = 30;
 	if (t <= 0) t = 100;
-	
-	printf("\nProcess Number %d \n ", rank);
-	
-	//game(w, h, t);
-
-
-
-
-
-	err= MPI_Finalize();
-
-
-
+	game(w, h, t);
 }
 

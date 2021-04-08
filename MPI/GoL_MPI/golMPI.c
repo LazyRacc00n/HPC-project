@@ -5,14 +5,10 @@
  *
  */
 
-// TO SEE THE STATUS OF CLUSTER: bhosts -w
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "mpi.h"
-
-#define  MASTER		0
  
 void show(void *u, int w, int h) {
 	int x,y;
@@ -49,23 +45,17 @@ void printbig(void *u, int w, int h, int z) {
 
 
 void evolve(void *u, int w, int h) {
-	
 	unsigned (*univ)[w] = u;
-	int i,j;
-
 	unsigned new[h][w];
 	int x,y,x1,y1;
  
-	for (y = 0; y < h; y++) 
-		for (x = 0; x < w; x++) {
-			
-			int n = 0;
-			//guarda nell'intorno di 3 celle e conta quanti vicini on ci sono 
-			for (y1 = y - 1; y1 <= y + 1; y1++)
-				for (x1 = x - 1; x1 <= x + 1; x1++)
-					if (univ[(y1 + h) % h][(x1 + w) % w]) n++;
-			if (univ[y][x]) n--;
-			new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
+	for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
+		int n = 0;
+		for (y1 = y - 1; y1 <= y + 1; y1++)
+			for (x1 = x - 1; x1 <= x + 1; x1++)
+				if (univ[(y1 + h) % h][(x1 + w) % w]) n++;
+		if (univ[y][x]) n--;
+		new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
 		/*
 		 * a cell is born, if it has exactly three neighbours 
 		 * a cell dies of loneliness, if it has less than two neighbours 
@@ -74,10 +64,7 @@ void evolve(void *u, int w, int h) {
 		 * or overcrowding 
 		 */
 	}
-	
-	for (y = 0; y < h; y++) 
-		for (x = 0; x < w; x++) 
-			univ[y][x] = new[y][x];
+	for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 }
  
  
@@ -88,74 +75,84 @@ void game(int w, int h, int t) {
 	struct timeval start, end;
 	
 	//initialization
-	for (x = 0; x < w; x++) 
-		for (y = 0; y < h; y++) 
-			univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
+	for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 	
-	if (x > 1000) printbig(univ, w, h, 0);
+	if (x > 1000) printbig(univ, w, h,0);
 	
-	
-	for(z = 0; z < t; z++) {
-		
+	for(z = 0; z < t;z++) {
 		if (x <= 1000) show(univ, w, h);
-			else gettimeofday(&start, NULL);
-
-			evolve(univ, w, h);
-			if (x > 1000) {
-				gettimeofday(&end, NULL);
-				printf("Iteration %d is : %ld ms\n", z,
-				((end.tv_sec * 1000000 + end.tv_usec) - 
-				(start.tv_sec * 1000000 + start.tv_usec))/1000 );
-			}
+		else gettimeofday(&start, NULL);
+		
+		evolve(univ, w, h);
+		if (x > 1000) {
+			gettimeofday(&end, NULL);
+		    printf("Iteration %d is : %ld ms\n", z,
+		       ((end.tv_sec * 1000000 + end.tv_usec) - 
+		       (start.tv_sec * 1000000 + start.tv_usec))/1000 );
+		}
 	}
-	if (x > 1000) printbig(univ, w, h, 1);
+	if (x > 1000) printbig(univ, w, h,1);
 }
  
  
-// TO COMPILE: mpiicc nameFile.c -o customName
-// TO EXECUTE:  mpiexec -nolocal -hostfile list_of_Cluster_Node.txt -perhost 1 -np 11 /bin/hostname
+
+ // IDEA: Split the starting matrix in block of equal size. 
+ 	
+	 //    Then each block is assigned to a processor to work on it.
+	
+	// Problem to manage: 
+		// - IF a cell has neighbours in other blocks.
+		// - how to split in blocks the matrix. Scatterv() ? (blocks can be also not all euqals) // MPI_dims_create()?
+
 
 int main(int c, char **v) {
-
 	
-	int err, comm_sz, rank;
+	int rank, size, err;
+	int dims[2];
 
-	err = MPI_Init(&c, &v);
-	
+	err = MPI_Init( &c , &v);
+
 	if( err != 0 ){
 
 		printf("\nError in MPI initialization!\n");
 		MPI_Abort( MPI_COMM_WORLD , err);
 	}
 
-	MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
+
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
+
 	int w = 0, h = 0, t = 0;
-	
-	
 	if (c > 1) w = atoi(v[1]);
 	if (c > 2) h = atoi(v[2]);
 	if (c > 3) t = atoi(v[3]);
 	if (w <= 0) w = 30;
 	if (h <= 0) h = 30;
 	if (t <= 0) t = 100;
-
-	//Possible Idea: Subdivide the matrix into part and assign to each node
-	//a chunk of matrix and compute the evolution:
-	//Problem to manage: during the evolution some new cells could go in part of
-	//the matrix belonging to the the neighbours
 	
-	MPI_Datatype newtype;
+	//printf("\nProcess Number %d \n ", rank);
+	
+	//if( rank == 0)
+		//game(w, h, t);
 
+	dims[0] = h;
+	dims[1] = w;
+	
+	if(rank == 0){
+		MPI_Dims_create( size , 2 , dims);
+		printf("BLOCKS DIMENTION: %d x %d", dims[0], dims[1]);
+	}
+		
 
-	//printf("\nH=%d, W=%d, t=%d\n", h,w,t );
-	printf("\n\nRank: %d\n\n", rank );
 	
 
-	
-	//game(w, h, t);
 
-	err = MPI_Finalize();
+
+
+	err= MPI_Finalize();
+
+
+
 }
 
