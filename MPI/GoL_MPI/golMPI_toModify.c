@@ -9,6 +9,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "mpi.h"
+
+#define ALIVE 1
+#define DEAD 0
  
 void show(void *u, int w, int h) {
 	int x,y;
@@ -94,13 +97,44 @@ void game(int w, int h, int t) {
 	if (x > 1000) printbig(univ, w, h,1);
 }
  
- // IDEA: Split the starting matrix in block of equal size. 
- 	
-	 //    Then each block is assigned to a processor to work on it.
-	
-	// Problem to manage: 
-		// - IF a cell has neighbours in other blocks.
-		// - how to split in blocks the matrix. Scatterv() ? (blocks can be also not all euqals) // MPI_dims_create()?
+
+//TODO: function for initialize blocks
+void init_block(void *block, int nCols_local, int nRows_local){
+
+	return;
+}
+
+//TODO: evolution of game of a block, and manage neighbours
+void evolve_block(void *u, int nCols_local, int nRows_local){
+
+//TODO: to be implemented yet
+	return;
+}
+
+
+void game_block(){
+
+	//TODO: to be implemented yet
+	return;
+}
+
+//TODO: Ghost Rows: In order to compute the envolve we need to send the first row (ghost) to the upper neighbor and the last
+//TODO: row to the lower neighbour. (Try to use dataype to send and check if it improve performance)
+//TODO: Ghost Columns: Copy fisrt column to the last ghost columns 
+
+
+
+// obtain the upper neighbour
+int get_upper_neighbour(int size, int rank){
+
+	return ( rank == 0 ) ? size - 1 : rank-1;
+}
+
+int get_lower_neighbour(int size, int rank){
+
+	return ( rank == size - 1 ) ? 0 : rank + 1;
+}
+
 
 
 int main(int c, char **v) {
@@ -141,11 +175,19 @@ int main(int c, char **v) {
 	//if the division has remains are added to the last process;
 	if( rank == size -1 )n_rows_local += nRows % size;
 	
-	// ghost colums are which that communicate
+	// ghost colums are which that communicate with neighbours. Are a sort of
+	// recever buffer
 	int n_rows_local_with_ghost = n_rows_local + 2;
 	int n_cols_with_ghost = nCols + 2;
 
-	printf("\nRank: %d - Rows local: %d - Cols: %d\n", rank, n_rows_local, nCols);
+	//printf("\nRank: %d - Rows local: %d - Cols: %d\n", rank, n_rows_local, nCols);
+
+	int upper_neighbour = get_upper_neighbour(size, rank);
+	int lower_neighbour = get_lower_neighbour(size, rank);
+	
+	printf("\nRank: %d --> Upper Neighbour: %d\n",rank, upper_neighbour);
+	printf("\nRank: %d --> Lower Neighbour: %d\n",rank, lower_neighbour);
+	
 
 	err= MPI_Finalize();
 
