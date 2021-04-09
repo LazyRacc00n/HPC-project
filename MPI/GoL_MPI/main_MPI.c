@@ -241,6 +241,8 @@ int main(int c, char **v){
 	*/
 
 
+
+
 	err = MPI_Finalize();
 
 	return EXIT_SUCCESS;
