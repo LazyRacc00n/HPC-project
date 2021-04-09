@@ -16,9 +16,6 @@ double elapsed_wtime(struct timeval start, struct timeval end) {
 }
 
 
-
-
-
 void writeFile(char fileName[], bool first, double time , int n_core){
     FILE *f;
 

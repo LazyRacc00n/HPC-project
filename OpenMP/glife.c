@@ -72,7 +72,8 @@ void game(int w, int h, int t) {
 	int x,y,z;
 	unsigned univ[h][w];
 	struct timeval start, end;
-	
+	double tot_time = 0.;
+
 	//initialization
 	for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 	
@@ -80,17 +81,27 @@ void game(int w, int h, int t) {
 	
 	for(z = 0; z < t;z++) {
 		if (x <= 1000) show(univ, w, h);
-		else gettimeofday(&start, NULL);
 		
+		// get starting time at iteration z
+		gettimeofday(&start, NULL);
+		
+		// lets evolve the current generation
 		evolve(univ, w, h);
+
+		// get ending time of iteration z
+		gettimeofday(&end, NULL);
+		tot_time += elapsed_wtime(start, end);
+		
 		if (x > 1000) {
-			gettimeofday(&end, NULL);
+			
 		    printf("Iteration %d is : %ld ms\n", z,
 		       ((end.tv_sec * 1000000 + end.tv_usec) - 
 		       (start.tv_sec * 1000000 + start.tv_usec))/1000 );
 		}
 	}
 	if (x > 1000) printbig(univ, w, h,1);
+
+	
 }
  
  
