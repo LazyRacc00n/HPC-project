@@ -99,7 +99,9 @@ void game(int w, int h, int t) {
  
 
 //TODO: function for initialize blocks
-void init_block(void *block, int nCols_local, int nRows_local){
+void init_block(void *b, int nCols_local, int nRows_local){
+
+	unsigned (*block)[nCols_local] = u;
 
 	return;
 }
