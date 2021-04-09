@@ -102,7 +102,7 @@ void game(int w, int h, int t) {
 	}
 	if (x > 1000) printbig(univ, w, h,1);
 
-	writeFile("Serial-100-100-10.txt", true, tot_time, 0);
+	writeFile(("Serial-%d-%d-%d.txt", w, h, t),true, tot_time, 0);
 }
  
  

@@ -10,8 +10,11 @@
 #include <unistd.h>
 #include "mpi.h"
 
-#define ALIVE 1
-#define DEAD 0
+#include "gameOfLife_MPI.h"
+
+
+
+//------------------------------------ OLD CODE    ---------------------------------------------------------------------------------------
 
 void show(void *u, int w, int h)
 {
@@ -116,6 +119,10 @@ void game(int w, int h, int t)
 		printbig(univ, w, h, 1);
 }
 
+
+
+//------------------------------------ NEW CODE    ---------------------------------------------------------------------------------------
+
 //function for initialize blocks
 void init_block(void *b, int nRows_local_with_ghost, int nCols_with_ghost)
 {
@@ -130,11 +137,18 @@ void init_block(void *b, int nRows_local_with_ghost, int nCols_with_ghost)
 
 
 //TODO: evolution of game of a block, and manage neighbours
-void evolve_block(void *u, int nCols_local, int nRows_local)
+void evolve_block(void *u, int nRows_local_with_ghost, int nCols_with_ghost, int time)
 {
+	int(*block)[nCols_with_ghost] = b;
 
-	//TODO: to be implemented yet
-	return;
+	int t;
+
+	for( t=0; t < time; t++ ){
+
+		break;
+
+	}
+
 }
 
 void game_block()
@@ -161,7 +175,7 @@ int get_lower_neighbour(int size, int rank)
 	return (rank == size - 1) ? 0 : rank + 1;
 }
 
-int main(int c, char **v){
+int main(int argc, char **argv){
 
 	int rank, size, err, MPI_root = 0;
 
@@ -176,19 +190,19 @@ int main(int c, char **v){
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	int nCols = 0, nRows = 0, t = 0;
-	if (c > 1)
-		nCols = atoi(v[1]);
-	if (c > 2)
-		nRows = atoi(v[2]);
-	if (c > 3)
-		t = atoi(v[3]);
+	int nCols = 0, nRows = 0, time = 0;
+	if (argc > 1)
+		nCols = atoi(argv[1]);
+	if (argc > 2)
+		nRows = atoi(argv[2]);
+	if (argc > 3)
+		time = atoi(argv[3]);
 	if (nCols <= 0)
 		nCols = 30;
 	if (nRows <= 0)
 		nRows = 30;
-	if (t <= 0)
-		t = 100;
+	if (time <= 0)
+		time = 100;
 
 	//send number of columns and number of rows to each process
 
@@ -222,7 +236,7 @@ int main(int c, char **v){
 	unsigned block[n_rows_local_with_ghost][n_cols_with_ghost];
 	unsigned next_block[n_rows_local_with_ghost][n_cols_with_ghost];
 
-	// each node initialiaze own block
+	// each node initialiaze own block randomly
 	init_block(block, n_rows_local_with_ghost, n_cols_with_ghost);
 
 	/*
@@ -239,9 +253,6 @@ int main(int c, char **v){
 		}
 	}
 	*/
-
-
-
 
 	err = MPI_Finalize();
 

@@ -15,7 +15,7 @@ OMP_FLAGS = -qopenmp
 VEC_FLAGS = -O3 -ipo -xHost
 
 # OpenMP files
-OMP_FILES = experiment01.c
+OMP_FILES = experiment01.c experiment02.c
 
-omp: $(OMP_FILES) : utils.o header.h
-	$(CC) $(OMP_FLAGS) -o OpenMP/$(OMP_FILES)
+omp: $(OMP_FILES) utils.c
+	$(CC) $(OMP_FLAGS) -o OpenMP/$(OMP_FILES) 

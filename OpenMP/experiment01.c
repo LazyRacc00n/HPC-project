@@ -100,9 +100,9 @@ void game(int w, int h, int t, int threads) {
 		       (start.tv_sec * 1000000 + start.tv_usec))/1000 );
 		}
 	}
-	if (x > 1000) printbig(univ, w, h,1);
+	//if (x > 1000) printbig(univ, w, h,1);
 
-	writeFile("Exp01-OMP.txt", true, tot_time, threads);
+	//writeFile(("Exp01-OMP-%d-%d-%d.txt", w, h, t), true, tot_time, threads);
 }
  
  

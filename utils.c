@@ -11,7 +11,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-// compute the elapsed wall-clock time between two time intervals.
+// compute the elapsed wall-clock time between two time intervals. in ms
 double elapsed_wtime(struct timeval start, struct timeval end) {
     return (double) ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)) / 1000;
 }
