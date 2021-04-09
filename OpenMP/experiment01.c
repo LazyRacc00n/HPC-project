@@ -48,13 +48,14 @@ void evolve(void *u, int w, int h) {
 	unsigned new[h][w];
 	int x,y,x1,y1;
  
-	for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
-		int n = 0;
-		for (y1 = y - 1; y1 <= y + 1; y1++)
-			for (x1 = x - 1; x1 <= x + 1; x1++)
-				if (univ[(y1 + h) % h][(x1 + w) % w]) n++;
-		if (univ[y][x]) n--;
-		new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
+	for (y = 0; y < h; y++) 
+        for (x = 0; x < w; x++) {
+		    int n = 0;
+		    for (y1 = y - 1; y1 <= y + 1; y1++)
+			    for (x1 = x - 1; x1 <= x + 1; x1++)
+				    if (univ[(y1 + h) % h][(x1 + w) % w]) n++;
+		    if (univ[y][x]) n--;
+		    new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
 		/*
 		 * a cell is born, if it has exactly three neighbours 
 		 * a cell dies of loneliness, if it has less than two neighbours 
@@ -62,8 +63,8 @@ void evolve(void *u, int w, int h) {
 		 * a cell survives to the next generation, if it does not die of loneliness 
 		 * or overcrowding 
 		 */
-	}
-	for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+	    }
+	    for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 }
  
  
@@ -120,7 +121,7 @@ int main(int c, char **v) {
 
     // fourth parameter Number of threads/core
     if (c > 4) threads = atoi(v[4]);
-    
+
 	if (w <= 0) w = 30;
 	if (h <= 0) h = 30;
 	if (t <= 0) t = 100;

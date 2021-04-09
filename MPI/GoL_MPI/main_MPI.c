@@ -161,15 +161,13 @@ int get_lower_neighbour(int size, int rank)
 	return (rank == size - 1) ? 0 : rank + 1;
 }
 
-int main(int c, char **v)
-{
+int main(int c, char **v){
 
 	int rank, size, err, MPI_root = 0;
 
 	err = MPI_Init(&c, &v);
 
-	if (err != 0)
-	{
+	if (err != 0){
 
 		printf("\nError in MPI initialization!\n");
 		MPI_Abort(MPI_COMM_WORLD, err);
@@ -224,10 +222,11 @@ int main(int c, char **v)
 	unsigned block[n_rows_local_with_ghost][n_cols_with_ghost];
 	unsigned next_block[n_rows_local_with_ghost][n_cols_with_ghost];
 
+	// each node initialiaze own block
 	init_block(block, n_rows_local_with_ghost, n_cols_with_ghost);
 
+	/*
 	int i, j;
-
 	if (rank == 1)
 	{
 		printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost );
@@ -239,6 +238,8 @@ int main(int c, char **v)
 			printf("\n");
 		}
 	}
+	*/
+
 
 	err = MPI_Finalize();
 

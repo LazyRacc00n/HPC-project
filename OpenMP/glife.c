@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdbool.h>
  
 void show(void *u, int w, int h) {
 	int x,y;
@@ -101,7 +102,7 @@ void game(int w, int h, int t) {
 	}
 	if (x > 1000) printbig(univ, w, h,1);
 
-	
+	writeFile("Serial-100-100-10.txt", true, tot_time, 0);
 }
  
  
