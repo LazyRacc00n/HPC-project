@@ -1,2 +1,2 @@
-# HIGH PPERFOMANCE COMPUTING PROJECT
+# HIGH PPPPERFOMANCE COMPUTING PROJECT
 The parallelization of the Game of Life  in openMP, MPI and CUDA
