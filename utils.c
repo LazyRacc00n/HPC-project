@@ -10,16 +10,24 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+// compute the elapsed wall-clock time between two time intervals.
+double elapsed_wtime(struct timeval start, struct timeval end) {
+    return (double) ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)) / 1000;
+}
 
-void writeFile(char fileName[], ){
+
+void writeFile(char fileName[], bool first, double time , int n_core){
     FILE *f;
 
-    f = fopen(fileName, "w" );
+
+    if(first)   f = fopen(fileName, "w" );
+    else f = fopen(fileName, "a" );
 
     // write file
-    fprintf(f,"");
+    fprintf(f,"%c,%ld",n_core , time);
 
     fprintf(f,"\n");
 	fflush(f);
 	fclose(f);
 }
+

@@ -28,3 +28,32 @@ Non ne capisco il motivo, ma il pull normale non funziona:
 
     Nel menu di git su vscode:
         - Pull, Push -> pull from... -> origin -> main
+
+
+--------------------------- HOW TO PRESENT DATA ---------------------------------------------------------------
+
+
+- BEFORE START: CHECK THE HARDWARE OF THE SERVER --> the data to present depend on it.
+
+
+CONSIDERING A SINGLE NODE OF A CLUSTER:
+    
+    - sequential time, Ts --> baseline
+    - Speedup --> Ts / Tp
+
+    - How to choose p:
+
+        - p=2, p = max number of cores, p = half number of cores (also half of half)
+
+    - Find how many threads every core can run simultaneosly, let N_T, 
+    so another important value to present is with p= N_T * total_number_of_cores
+
+    - if I have 2 independent cpus with each 6 cores:
+        - P= 2, 12
+        - 24 to analyse performance with hyperthreding ( 2 threads simultaneosly )
+
+MULTIPLE MACHINES:
+
+    - 12 nodes: 64 cores * 12 nodes (OpenMP)
+    - for SMT (Simultaneous multithreading) : 256 * 12 threads ( MPI or, possibly OpenMP + MPI)
+-----------------------------------------------------------------------------------------------------------------
