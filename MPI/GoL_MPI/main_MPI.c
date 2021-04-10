@@ -9,14 +9,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-
 #include "gameOfLife_MPI.h"
-
-
 
 //------------------------------------ OLD CODE---------------------------------------------------------------------------------------
 
-void show(void *u, int w, int h){
+void show(void *u, int w, int h)
+{
 	int x, y;
 	int(*univ)[w] = u;
 	printf("\033[H");
@@ -118,57 +116,47 @@ void game(int w, int h, int t)
 		printbig(univ, w, h, 1);
 }
 
-
-
 //------------------------------------ NEW CODE    ---------------------------------------------------------------------------------------
 
-
-
 //function to allocate a block in a node and initialize the field of the struct it
-void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost, int nCols_with_Ghost, int upper_neighbour, int lower_neighbour){
-	
-	int i;
-	
-	// initialize field of the struct that represent the block
-	gridBlock -> numRows_ghost = nRows_with_ghost;
-	gridBlock -> numCols_ghost = nCols_with_Ghost;
-	gridBlock -> upper_neighbour = upper_neighbour;
-	gridBlock -> lower_neighbour = lower_neighbour;
-	
-	
-	//allocate memory for an array of pointers and then allocate memory for every row
-	gridBlock->block = (unsigned int **)malloc( gridBlock->numRows_ghost * sizeof(unsigned int *));
-	for(i=0; i < gridBlock->numRows_ghost; i++)
-		gridBlock->block[i] = (unsigned int *) malloc(gridBlock->numCols_ghost * sizeof(unsigned int));
-}
+void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost, int nCols_with_Ghost, int upper_neighbour, int lower_neighbour)
+{
 
+	int i;
+
+	// initialize field of the struct that represent the block assigned to a node
+	gridBlock->numRows_ghost = nRows_with_ghost;
+	gridBlock->numCols_ghost = nCols_with_Ghost;
+	gridBlock->upper_neighbour = upper_neighbour;
+	gridBlock->lower_neighbour = lower_neighbour;
+
+	//allocate memory for an array of pointers and then allocate memory for every row
+	gridBlock->block = (unsigned int **)malloc(gridBlock->numRows_ghost * sizeof(unsigned int *));
+	for (i = 0; i < gridBlock->numRows_ghost; i++)
+		gridBlock->block[i] = (unsigned int *)malloc(gridBlock->numCols_ghost * sizeof(unsigned int));
+}
 
 //function for initialize blocks
 void init_grid_block(struct grid_block *gridBlock)
 {
 	int i, j;
 
-	for (i = 1; i < gridBlock -> numRows_ghost - 1; i++)
-		for (j = 1; j < gridBlock-> numCols_ghost - 1; j++)
+	for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
+		for (j = 1; j < gridBlock->numCols_ghost - 1; j++)
 			gridBlock->block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 }
 
-
 //TODO: evolution of game of a block, and manage neighbours
-void evolve_block(void *b, int nRows_local_with_ghost, int nCols_with_ghost, int time)
+void evolve_block(struct grid_block *gridBlock int time)
 {
-	int(*block)[nCols_with_ghost] = b;
 
-	int t;
-
-	for( t=0; t < time; t++ ){
+	for (t = 0; t < time; t++)
+	{
 
 		break;
-
 	}
 
 	return;
-
 }
 
 void game_block()
@@ -195,13 +183,15 @@ int get_lower_neighbour(int size, int rank)
 	return (rank == size - 1) ? 0 : rank + 1;
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
 
 	int rank, size, err, MPI_root = 0;
 
 	err = MPI_Init(&argc, &argv);
 
-	if (err != 0){
+	if (err != 0)
+	{
 
 		printf("\nError in MPI initialization!\n");
 		MPI_Abort(MPI_COMM_WORLD, err);
@@ -250,7 +240,6 @@ int main(int argc, char **argv){
 	//printf("\nRank: %d --> Upper Neighbour: %d\n",rank, upper_neighbour);
 	//printf("\nRank: %d --> Lower Neighbour: %d\n",rank, lower_neighbour);
 
-	
 	struct grid_block blockGrid;
 	struct grid_block nextBlockGrid;
 
@@ -259,13 +248,12 @@ int main(int argc, char **argv){
 	// each node initialiaze own block randomly
 	init_grid_block(&blockGrid);
 
-
 	// print a block to test
 	int i, j;
 	if (rank == 1)
 	{
-		
-		printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost );
+
+		printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost);
 		for (i = 1; i < n_rows_local_with_ghost - 1; i++)
 		{
 			for (j = 1; j < n_cols_with_ghost - 1; j++)

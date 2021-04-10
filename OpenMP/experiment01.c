@@ -5,8 +5,7 @@
  *
  */
 
-
-#include <sys/time.h>
+#include "../utils.h"
 #include <omp.h> // Enable OpenMP parallelization
 
  

@@ -6,9 +6,7 @@
  */
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+#include "utils.h"
 #include <stdbool.h>
 
 // compute the elapsed wall-clock time between two time intervals. in ms
