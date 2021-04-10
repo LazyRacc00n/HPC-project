@@ -5,10 +5,8 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdbool.h> // boolean type
+
+#include <sys/time.h>
 #include <omp.h> // Enable OpenMP parallelization
 
  
@@ -52,13 +50,13 @@ void evolve(void *u, int w, int h) {
 	int x,y,x1,y1,n;
 	
 	#pragma omp parallel for private(n)
-	for (y = 0; y < h; y++) 
-        for (x = 0; x < w; x++) {
+	for (int y = 0; y < h; y++) 
+        for (int x = 0; x < w; x++) {
 		    n = 0;
 
 			// look at the 3x3 neighbourhood
-		    for (y1 = y - 1; y1 <= y + 1; y1++)
-			    for (x1 = x - 1; x1 <= x + 1; x1++)
+		    for (int y1 = y - 1; y1 <= y + 1; y1++)
+			    for (int x1 = x - 1; x1 <= x + 1; x1++)
 				    if ((y != y1 || x != x1) && univ[(y1 + h) % h][(x1 + w) % w]) n++;
 
 		    new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
@@ -70,7 +68,7 @@ void evolve(void *u, int w, int h) {
 		 * or overcrowding 
 		 */
 	    }
-	for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+	for (int y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 }
  
  
@@ -138,7 +136,7 @@ int main(int c, char **v) {
 	if (t <= 0) t = 100;
 
 	// set the threads with OpenMP
-	omp_set_num_threads(threads)
+	omp_set_num_threads(threads);
 
 	// check the actual number of threads used by the program
 	prinf("Number of threads requested is %d \n Number of threads actually created is %d", threads, omp_get_num_threads());

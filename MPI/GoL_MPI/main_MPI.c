@@ -123,10 +123,18 @@ void game(int w, int h, int t)
 //------------------------------------ NEW CODE    ---------------------------------------------------------------------------------------
 
 
-//function to allocate a block in a node and initialize it
-void allocate_block(struct grid_block *gridBlock){
+
+//function to allocate a block in a node and initialize the field of the struct it
+void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost, int nCols_with_Ghost, int upper_neighbour, int lower_neighbour){
 	
 	int i;
+	
+	// initialize field of the struct that represent the block
+	gridBlock -> numRows_ghost = nRows_with_ghost;
+	gridBlock -> numCols_ghost = nCols_with_Ghost;
+	gridBlock -> upper_neighbour = upper_neighbour;
+	gridBlock -> lower_neighbour = lower_neighbour;
+	
 	
 	//allocate memory for an array of pointers and then allocate memory for every row
 	gridBlock->block = (unsigned int **)malloc( gridBlock->numRows_ghost * sizeof(unsigned int *));
@@ -136,7 +144,7 @@ void allocate_block(struct grid_block *gridBlock){
 
 
 //function for initialize blocks
-void init_block(struct grid_block *gridBlock)
+void init_grid_block(struct grid_block *gridBlock)
 {
 	int i, j;
 
@@ -242,33 +250,20 @@ int main(int argc, char **argv){
 	//printf("\nRank: %d --> Upper Neighbour: %d\n",rank, upper_neighbour);
 	//printf("\nRank: %d --> Lower Neighbour: %d\n",rank, lower_neighbour);
 
-	//printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost );
-
-	// test initia
 	
-
-
 	struct grid_block blockGrid;
 	struct grid_block nextBlockGrid;
 
-	blockGrid.numRows_ghost = n_rows_local_with_ghost;
-	blockGrid.numCols_ghost = n_cols_with_ghost;
-	blockGrid.upper_neighbours = upper_neighbour;
-	blockGrid.lower_neighbours = lower_neighbour;
-
-
-	allocate_block(&blockGrid);
+	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour);
 
 	// each node initialiaze own block randomly
-	init_block(&blockGrid);
+	init_grid_block(&blockGrid);
 
 
 	// print a block to test
 	int i, j;
 	if (rank == 1)
 	{
-	
-
 		
 		printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost );
 		for (i = 1; i < n_rows_local_with_ghost - 1; i++)

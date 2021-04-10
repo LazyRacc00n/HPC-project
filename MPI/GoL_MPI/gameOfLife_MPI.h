@@ -8,8 +8,8 @@ struct grid_block{
     int numRows_ghost;
     int numCols_ghost;
 
-    int upper_neighbours;
-    int lower_neighbours;
+    int upper_neighbour;
+    int lower_neighbour;
 
     unsigned int **block;
     
