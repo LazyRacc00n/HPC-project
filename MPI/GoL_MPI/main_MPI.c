@@ -8,15 +8,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "mpi.h"
+
+
 #include "gameOfLife_MPI.h"
 
 
 
-//------------------------------------ OLD CODE    ---------------------------------------------------------------------------------------
+//------------------------------------ OLD CODE---------------------------------------------------------------------------------------
 
-void show(void *u, int w, int h)
-{
+void show(void *u, int w, int h){
 	int x, y;
 	int(*univ)[w] = u;
 	printf("\033[H");
@@ -122,6 +122,19 @@ void game(int w, int h, int t)
 
 //------------------------------------ NEW CODE    ---------------------------------------------------------------------------------------
 
+
+//function to allocate a block in a node and initialize it
+void allocate_block(struct grid_block *gridBlock){
+	
+	int i;
+	
+	//allocate memory for an array of pointers and then allocate memory for every row
+	gridBlock->block = (unsigned int **)malloc( gridBlock->numRows_ghost * sizeof(unsigned int *));
+	for(i=0; i < gridBlock->numRows_ghost; i++)
+		gridBlock->block[i] = (unsigned int *) malloc(gridBlock->numCols_ghost * sizeof(unsigned int));
+}
+
+
 //function for initialize blocks
 void init_block(void *b, int nRows_local_with_ghost, int nCols_with_ghost)
 {
@@ -136,7 +149,7 @@ void init_block(void *b, int nRows_local_with_ghost, int nCols_with_ghost)
 
 
 //TODO: evolution of game of a block, and manage neighbours
-void evolve_block(void *u, int nRows_local_with_ghost, int nCols_with_ghost, int time)
+void evolve_block(void *b, int nRows_local_with_ghost, int nCols_with_ghost, int time)
 {
 	int(*block)[nCols_with_ghost] = b;
 
@@ -180,7 +193,7 @@ int main(int argc, char **argv){
 
 	int rank, size, err, MPI_root = 0;
 
-	err = MPI_Init(&c, &v);
+	err = MPI_Init(&argc, &argv);
 
 	if (err != 0){
 
@@ -210,7 +223,7 @@ int main(int argc, char **argv){
 	// send rows
 	MPI_Bcast(&nRows, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
 	MPI_Bcast(&nCols, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
-	MPI_Bcast(&t, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
+	MPI_Bcast(&time, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
 
 	//Each process compute the size of its chunks
 	int n_rows_local = nRows / size;
@@ -234,29 +247,44 @@ int main(int argc, char **argv){
 	//printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost );
 
 	// test initia
-	unsigned block[n_rows_local_with_ghost][n_cols_with_ghost];
-	unsigned next_block[n_rows_local_with_ghost][n_cols_with_ghost];
+	
 
 	// each node initialiaze own block randomly
 	init_block(block, n_rows_local_with_ghost, n_cols_with_ghost);
 
 
-	struct block * block_;
+	struct grid_block blockGrid;
+	struct grid_block nextBlockGrid;
 
-	/*
+	blockGrid.numRows_ghost = n_rows_local_with_ghost;
+	blockGrid.numCols_ghost = n_cols_with_ghost;
+	blockGrid.upper_neighbours = upper_neighbour;
+	blockGrid.lower_neighbours = lower_neighbour;
+
+
+	allocate_block(&blockGrid);
+
+
+	// print a block to test
 	int i, j;
 	if (rank == 1)
 	{
+		
+		for (i = 1; i < blockGrid.numRows_ghost - 1; i++)
+			for (j = 1; j < blockGrid.numCols_ghost - 1; j++)
+				blockGrid.block[i][j] = ALIVE;
+
+		
 		printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost );
 		for (i = 1; i < n_rows_local_with_ghost - 1; i++)
 		{
 			for (j = 1; j < n_cols_with_ghost - 1; j++)
-				printf("%d ", block[i][j]);
+				printf("%d ", blockGrid.block[i][j]);
 
 			printf("\n");
 		}
 	}
-	*/
+	//-----------------------------------------------------------------------------------------------
 
 	err = MPI_Finalize();
 

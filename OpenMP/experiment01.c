@@ -8,7 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdbool.h>
+#include <stdbool.h> // boolean type
+#include <omp.h> // Enable OpenMP parallelization
 
  
 void show(void *u, int w, int h) {
@@ -48,15 +49,18 @@ void printbig(void *u, int w, int h, int z) {
 void evolve(void *u, int w, int h) {
 	unsigned (*univ)[w] = u;
 	unsigned new[h][w];
-	int x,y,x1,y1;
- 
+	int x,y,x1,y1,n;
+	
+	#pragma omp parallel for private(n)
 	for (y = 0; y < h; y++) 
         for (x = 0; x < w; x++) {
-		    int n = 0;
+		    n = 0;
+
+			// look at the 3x3 neighbourhood
 		    for (y1 = y - 1; y1 <= y + 1; y1++)
 			    for (x1 = x - 1; x1 <= x + 1; x1++)
-				    if (univ[(y1 + h) % h][(x1 + w) % w]) n++;
-		    if (univ[y][x]) n--;
+				    if ((y != y1 || x != x1) && univ[(y1 + h) % h][(x1 + w) % w]) n++;
+
 		    new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
 		/*
 		 * a cell is born, if it has exactly three neighbours 
@@ -66,7 +70,7 @@ void evolve(void *u, int w, int h) {
 		 * or overcrowding 
 		 */
 	    }
-	    for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+	for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 }
  
  
@@ -106,13 +110,10 @@ void game(int w, int h, int t, int threads) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Serial-%d-%d-%d.txt", w, h, t);
+	sprintf(fileName, "Exp01-OMP-%d-%d-%d.txt", w, h, t);
 
 	writeFile(fileName, true, tot_time, threads);
 
-
-
-    
 }
  
  
@@ -135,6 +136,14 @@ int main(int c, char **v) {
 	if (w <= 0) w = 30;
 	if (h <= 0) h = 30;
 	if (t <= 0) t = 100;
+
+	// set the threads with OpenMP
+	omp_set_num_threads(threads)
+
+	// check the actual number of threads used by the program
+	prinf("Number of threads requested is %d \n Number of threads actually created is %d", threads, omp_get_num_threads());
+	
+	// execute the game code
 	game(w, h, t, threads);
 }
 

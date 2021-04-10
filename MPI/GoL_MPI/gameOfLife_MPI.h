@@ -1,7 +1,9 @@
+#include "mpi.h"
+
 #define ALIVE 1
 #define DEAD 0
 
-struct block{
+struct grid_block{
 
     int numRows_ghost;
     int numCols_ghost;
@@ -11,4 +13,4 @@ struct block{
 
     unsigned int **block;
     
-}
+};
