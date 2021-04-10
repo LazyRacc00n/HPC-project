@@ -8,8 +8,6 @@
 
 #include "../utils.h"
 
-
-
 /*
 * a cell is born, if it has exactly three neighbours 
 * a cell dies of loneliness, if it has less than two neighbours 
@@ -22,11 +20,12 @@ void evolve(void *u, int w, int h) {
 	unsigned new[h][w];
 	int x,y,x1,y1,n;
 	
-	#pragma omp parallel for private(x, y1, x1, n) shared(new, univ) schedule(static)
+	#pragma #pragma omp single shared(new, univ) schedule(static)
 	for ( y = 0; y < h; y++) 
         for ( x = 0; x < w; x++) {
 		    n = 0;
 
+            #pragma omp taskloop firstprivate(n)
 			// look at the 3x3 neighbourhood
 		    for (y1 = y - 1; y1 <= y + 1; y1++)
 			    for (x1 = x - 1; x1 <= x + 1; x1++)
@@ -80,7 +79,7 @@ void game(int w, int h, int t, int threads) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Exp01-OMP-%d-%d-%d.txt", w, h, t);
+	sprintf(fileName, "Exp02-OMP-%d-%d-%d.txt", w, h, t);
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
@@ -109,13 +108,13 @@ int main(int c, char **v) {
 
 	// set the threads with OpenMP
 	omp_set_num_threads(threads);
-	int actual_threads = omp_get_num_threads();
+
 	
 	// execute the game code
 	game(w, h, t, threads);
 
 	// check the actual number of threads used by the program
-	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, actual_threads);
+	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, omp_get_num_threads());
 	
 }
 
