@@ -234,7 +234,7 @@ int main(int argc, char **argv){
 	//printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost );
 
 	// test initia
-	unsigned b[n_rows_local_with_ghost][n_cols_with_ghost];
+	unsigned block[n_rows_local_with_ghost][n_cols_with_ghost];
 	unsigned next_block[n_rows_local_with_ghost][n_cols_with_ghost];
 
 	// each node initialiaze own block randomly
