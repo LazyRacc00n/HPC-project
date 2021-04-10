@@ -71,4 +71,5 @@ dkms.conf
 .nfs000000003b6591e300000466
 .nfs000000003b6591ed00000468
 .nfs000000003b6591f100000465
+#file output --> too large for github
 glife.txt
