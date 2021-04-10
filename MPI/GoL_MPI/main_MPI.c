@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "mpi.h"
-
 #include "gameOfLife_MPI.h"
 
 
@@ -149,6 +148,8 @@ void evolve_block(void *u, int nRows_local_with_ghost, int nCols_with_ghost, int
 
 	}
 
+	return;
+
 }
 
 void game_block()
@@ -233,11 +234,14 @@ int main(int argc, char **argv){
 	//printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost );
 
 	// test initia
-	unsigned block[n_rows_local_with_ghost][n_cols_with_ghost];
+	unsigned b[n_rows_local_with_ghost][n_cols_with_ghost];
 	unsigned next_block[n_rows_local_with_ghost][n_cols_with_ghost];
 
 	// each node initialiaze own block randomly
 	init_block(block, n_rows_local_with_ghost, n_cols_with_ghost);
+
+
+	struct block * block_;
 
 	/*
 	int i, j;
