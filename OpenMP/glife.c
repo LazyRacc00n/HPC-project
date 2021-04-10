@@ -5,11 +5,17 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdbool.h>
- 
+#include "../utils.h"
+/*
+ // compute the elapsed wall-clock time between two time intervals. in ms
+double elapsed_wtime(struct timeval start, struct timeval end) {
+
+    return (double)((end.tv_sec * 1000000 + end.tv_usec) - 
+		       (start.tv_sec * 1000000 + start.tv_usec))/1000;
+
+   
+}
+*/
 void show(void *u, int w, int h) {
 	int x,y;
 	int (*univ)[w] = u;
@@ -64,6 +70,7 @@ void evolve(void *u, int w, int h) {
 		 * or overcrowding 
 		 */
 	}
+	
 	for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 }
  
@@ -73,7 +80,7 @@ void game(int w, int h, int t) {
 	int x,y,z;
 	unsigned univ[h][w];
 	struct timeval start, end;
-	double tot_time = 0.;
+	double tot_time = 0.; // in ms
 
 	//initialization
 	for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
@@ -91,11 +98,12 @@ void game(int w, int h, int t) {
 
 		// get ending time of iteration z
 		gettimeofday(&end, NULL);
-		tot_time += elapsed_wtime(start, end);
+		tot_time += (double) elapsed_wtime(start, end);
 		
 		if (x > 1000) {
 			
-		    printf("Iteration %d is : %ld ms\n", z,
+		    printf("Iteration %d is : %f ms \n", z, (double) elapsed_wtime(start, end) );
+			printf("Iteration %d is : %ld ms\n", z,
 		       ((end.tv_sec * 1000000 + end.tv_usec) - 
 		       (start.tv_sec * 1000000 + start.tv_usec))/1000 );
 		}

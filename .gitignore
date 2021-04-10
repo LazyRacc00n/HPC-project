@@ -1,0 +1,74 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+.nfs000000003b2d8d5200000470
+.nfs000000003b2d8d5400000467
+.nfs000000003b2d8d6900000462
+.nfs000000003b4d903a0000046b
+.nfs000000003b4d903c00000461
+.nfs000000003b4d905a00000472
+.nfs000000003b4d907b00000473
+.nfs000000003b6d930a0000046a
+.nfs000000003b6d932700000474
+.nfs000000003b458e9b0000046d
+.nfs000000003b458e860000046c
+.nfs000000003b458ec400000463
+.nfs000000003b6591a000000469
+.nfs000000003b6591a900000460
+.nfs000000003b6591b10000046e
+.nfs000000003b6591b70000046f
+.nfs000000003b6591c900000471
+.nfs000000003b6591d800000464
+.nfs000000003b6591e300000466
+.nfs000000003b6591ed00000468
+.nfs000000003b6591f100000465
+glife.txt

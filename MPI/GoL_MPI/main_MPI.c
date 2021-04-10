@@ -33,8 +33,6 @@ void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost,
 //function for initialize blocks
 void init_grid_block(struct grid_block *gridBlock)
 {	
-	srand(25);
-
 	int i, j;
 
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
@@ -172,6 +170,8 @@ int main(int argc, char **argv)
 
 	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour);
 
+	if( rank == 0 ) srand(25);
+	else srand(28);
 	// each node initialiaze own block randomly
 	init_grid_block(&blockGrid);
 
@@ -181,8 +181,8 @@ int main(int argc, char **argv)
 	int i, j;
 	
 	// print a block to test
-	
-	if (rank == 1)
+	// print one rank at time 
+	if (rank == 10)
 	{
 
 		printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost);

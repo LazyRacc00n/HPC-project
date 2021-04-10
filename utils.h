@@ -2,5 +2,5 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h> // boolean type
-#include <sys/time.h>
 
+double elapsed_wtime(struct timeval , struct timeval );

@@ -8,6 +8,13 @@
 
 #include "../utils.h"
 
+// compute the elapsed wall-clock time between two time intervals. in ms
+double elapsed_wtime(struct timeval start, struct timeval end) {
+
+    return (double)((end.tv_sec * 1000000 + end.tv_usec) - 
+		       (start.tv_sec * 1000000 + start.tv_usec))/1000;
+
+}
  
 void show(void *u, int w, int h) {
 	int x,y;
@@ -48,9 +55,9 @@ void evolve(void *u, int w, int h) {
 	unsigned new[h][w];
 	int x,y,x1,y1,n;
 	
-	#pragma omp parallel for private(n)
-	for (int y = 0; y < h; y++) 
-        for (int x = 0; x < w; x++) {
+	#pragma omp parallel for private(x, y1, x1, n) shared(new, univ)
+	for ( y = 0; y < h; y++) 
+        for ( x = 0; x < w; x++) {
 		    n = 0;
 
 			// look at the 3x3 neighbourhood
@@ -67,7 +74,7 @@ void evolve(void *u, int w, int h) {
 		 * or overcrowding 
 		 */
 	    }
-	for (int y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+	for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 }
  
  
@@ -96,13 +103,11 @@ void game(int w, int h, int t, int threads) {
 		gettimeofday(&end, NULL);
 		
 		// sum up the total time execution
-		tot_time += elapsed_wtime(start, end);
+		tot_time += (double) elapsed_wtime(start, end);
 		
 		if (x > 1000) {
 			
-		    printf("Iteration %d is : %ld ms\n", z,
-		       ((end.tv_sec * 1000000 + end.tv_usec) - 
-		       (start.tv_sec * 1000000 + start.tv_usec))/1000 );
+		    printf("Iteration %d is : %f ms\n", z, (double) elapsed_wtime(start, end));
 		}
 	}
 	if (x > 1000) printbig(univ, w, h,1);
