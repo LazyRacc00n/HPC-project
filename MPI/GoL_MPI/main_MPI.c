@@ -136,15 +136,13 @@ void allocate_block(struct grid_block *gridBlock){
 
 
 //function for initialize blocks
-void init_block(void *b, int nRows_local_with_ghost, int nCols_with_ghost)
+void init_block(struct grid_block *gridBlock)
 {
-
-	int(*block)[nCols_with_ghost] = b;
 	int i, j;
 
-	for (i = 1; i < nRows_local_with_ghost - 1; i++)
-		for (j = 1; j < nCols_with_ghost - 1; j++)
-			block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
+	for (i = 1; i < gridBlock -> numRows_ghost - 1; i++)
+		for (j = 1; j < gridBlock-> numCols_ghost - 1; j++)
+			gridBlock->block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 }
 
 
@@ -249,9 +247,6 @@ int main(int argc, char **argv){
 	// test initia
 	
 
-	// each node initialiaze own block randomly
-	init_block(block, n_rows_local_with_ghost, n_cols_with_ghost);
-
 
 	struct grid_block blockGrid;
 	struct grid_block nextBlockGrid;
@@ -264,15 +259,15 @@ int main(int argc, char **argv){
 
 	allocate_block(&blockGrid);
 
+	// each node initialiaze own block randomly
+	init_block(&blockGrid);
+
 
 	// print a block to test
 	int i, j;
 	if (rank == 1)
 	{
-		
-		for (i = 1; i < blockGrid.numRows_ghost - 1; i++)
-			for (j = 1; j < blockGrid.numCols_ghost - 1; j++)
-				blockGrid.block[i][j] = ALIVE;
+	
 
 		
 		printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost );
