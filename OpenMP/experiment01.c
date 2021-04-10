@@ -94,6 +94,8 @@ void game(int w, int h, int t, int threads) {
 
 		// get ending time of iteration z
 		gettimeofday(&end, NULL);
+		
+		// sum up the total time execution
 		tot_time += elapsed_wtime(start, end);
 		
 		if (x > 1000) {
@@ -137,10 +139,12 @@ int main(int c, char **v) {
 	// set the threads with OpenMP
 	omp_set_num_threads(threads);
 
-	// check the actual number of threads used by the program
-	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, omp_get_num_threads());
 	
 	// execute the game code
 	game(w, h, t, threads);
+
+	// check the actual number of threads used by the program
+	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, omp_get_num_threads());
+	
 }
 

@@ -32,7 +32,9 @@ void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost,
 
 //function for initialize blocks
 void init_grid_block(struct grid_block *gridBlock)
-{
+{	
+	srand(25);
+
 	int i, j;
 
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
@@ -43,7 +45,7 @@ void init_grid_block(struct grid_block *gridBlock)
 //TODO: evolution of game of a block, and manage neighbours
 void evolve_block(struct grid_block *gridBlock,  int time)
 {	
-
+	int i,j,t;
 	//TODO: see difference of performance in seding using derived datatype and without
 	// create a derived datatyper to send a row
 	MPI_Datatype row_block_type;
@@ -64,9 +66,23 @@ void evolve_block(struct grid_block *gridBlock,  int time)
 		MPI_Recv( &gridBlock->block[gridBlock->numRows_ghost - 1 ][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->lower_neighbour , 0 , MPI_COMM_WORLD, &stat);
 		
 		// receive from top using  the ghost row as receiver buffer
-		MPI_Recv( &gridBlock->block[1][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->uppper_neighbour , 0 , MPI_COMM_WORLD, &stat);
+		MPI_Recv( &gridBlock->block[0][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->upper_neighbour , 0 , MPI_COMM_WORLD, &stat);
 
-	
+
+		//ghost colums: 
+		// 		-copy last column to the fisrt column
+		// 		-copy the fisrt column to the last last column
+
+		for (i = 0; i < gridBlock->numRows_ghost; i++){
+			gridBlock->block[i][0] = gridBlock->block[i][gridBlock->numCols_ghost-2];
+			gridBlock->block[i][gridBlock->numCols_ghost - 1] = gridBlock->block[i][1];
+		}
+
+
+		//Update to current grid to the next grid
+		
+
+		
 	}
 }
 
@@ -159,15 +175,20 @@ int main(int argc, char **argv)
 	// each node initialiaze own block randomly
 	init_grid_block(&blockGrid);
 
-	// print a block to test
+	evolve_block(&blockGrid, 5);
+	
+
 	int i, j;
+	
+	// print a block to test
+	
 	if (rank == 1)
 	{
 
 		printf("\n\nBLOCKS DIMS RANK %d WITH GHOST: %d x %d \n\n", rank, n_rows_local_with_ghost, n_cols_with_ghost);
-		for (i = 1; i < n_rows_local_with_ghost - 1; i++)
+		for (i = 0; i < n_rows_local_with_ghost; i++)
 		{
-			for (j = 1; j < n_cols_with_ghost - 1; j++)
+			for (j = 0; j < n_cols_with_ghost; j++)
 				printf("%d ", blockGrid.block[i][j]);
 
 			printf("\n");
