@@ -55,8 +55,8 @@ void evolve(void *u, int w, int h) {
 		    n = 0;
 
 			// look at the 3x3 neighbourhood
-		    for (int y1 = y - 1; y1 <= y + 1; y1++)
-			    for (int x1 = x - 1; x1 <= x + 1; x1++)
+		    for (y1 = y - 1; y1 <= y + 1; y1++)
+			    for (x1 = x - 1; x1 <= x + 1; x1++)
 				    if ((y != y1 || x != x1) && univ[(y1 + h) % h][(x1 + w) % w]) n++;
 
 		    new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
@@ -110,7 +110,7 @@ void game(int w, int h, int t, int threads) {
 	char *fileName = (char*)malloc(50 * sizeof(char));
 	sprintf(fileName, "Exp01-OMP-%d-%d-%d.txt", w, h, t);
 
-	writeFile(fileName, true, tot_time, threads);
+	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
 }
  
