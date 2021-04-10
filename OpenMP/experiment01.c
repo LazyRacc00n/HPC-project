@@ -4,9 +4,9 @@
  * https://www.geeksforgeeks.org/conways-game-life-python-implementation/
  *
  */
+#include <omp.h> // Enable OpenMP parallelization
 
 #include "../utils.h"
-#include <omp.h> // Enable OpenMP parallelization
 
  
 void show(void *u, int w, int h) {
@@ -138,7 +138,7 @@ int main(int c, char **v) {
 	omp_set_num_threads(threads);
 
 	// check the actual number of threads used by the program
-	prinf("Number of threads requested is %d \n Number of threads actually created is %d", threads, omp_get_num_threads());
+	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, omp_get_num_threads());
 	
 	// execute the game code
 	game(w, h, t, threads);

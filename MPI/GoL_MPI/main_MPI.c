@@ -147,13 +147,21 @@ void init_grid_block(struct grid_block *gridBlock)
 }
 
 //TODO: evolution of game of a block, and manage neighbours
-void evolve_block(struct grid_block *gridBlock int time)
+void evolve_block(struct grid_block *gridBlock,  int time)
 {
+	MPI_Datatype row;
 
-	for (t = 0; t < time; t++)
-	{
+	for (t = 0; t < time; t++){
 
+		// send first row of the block to the upper neighbour
+
+		//TODO: see difference in seding using derived datatype and without derived datatype
+		MPI_Send( &gridBlock->block[1][0], gridBlock->numRows_ghost , MPI_Datatype datatype , int dest , int tag , MPI_Comm comm);
+
+		// send last row of the block to the lower neighbour
 		break;
+	
+	
 	}
 
 	return;
