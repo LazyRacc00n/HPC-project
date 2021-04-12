@@ -40,6 +40,7 @@ void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost,
 	gridBlock->mpi_size = size;
 
 
+
 	//allocate memory for an array of pointers and then allocate memory for every row
 	gridBlock->block = (unsigned int **)malloc(gridBlock->numRows_ghost * sizeof(unsigned int *));
 	for (i = 0; i < gridBlock->numRows_ghost; i++)
@@ -57,6 +58,56 @@ void init_grid_block(struct grid_block *gridBlock)
 			gridBlock->block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 }
 
+
+
+
+void display(struct grid_block *gridBlock, int nRows, int nCols){
+
+
+	//send data to the root, if I'm not the root
+	if( gridBlock->rank != MPI_root){
+		//send all rows
+		for( i=1; i < gridBlock->numRows_ghost - 1; i++ )
+			MPI_Send(&gridBlock->block[i][1], 1 , row_block_without_ghost , MPI_root , 0 , MPI_COMM_WORLD);
+	}
+		
+		
+	if(gridBlock->rank == MPI_root){//if I'm the root: print and receive
+	
+		//print current grid
+		for( i=1; i < gridBlock->numRows_ghost - 1; i++ ){
+				for( j=1; j < gridBlock->numCols_ghost - 1; j++ )
+					printf("%d ", gridBlock->block[i][j] );
+				printf("\n");
+			}
+
+
+		int src, rec_idx, i_buf;
+			//Receive form other nodes ( excluding the root, 0 )
+		for(src=1; src < gridBlock-> mpi_size; src++ ){
+
+			// I need know how much rows the root must receive, are different for some node
+
+			// TODO: Try a better solution: every node kowns the dimentions of the blocks of the other nodes
+
+			//For now, I can compute the number of rows of each node
+
+			int nRows_rec = nRows / gridBlock -> mpi_size;
+
+			if( src == gridBlock -> mpi_size - 1) nRows_rec += nRows % gridBlock -> mpi_size;
+
+			int buffer[nCols];
+
+			for( rec_idx = 0; rec_idx < nRows_rec ; rec_idx++)
+				MPI_Recv( &buffer[0], nCols, MPI_UNSIGNED , src , 0 , MPI_COMM_WORLD, &stat);
+					for(i_buf = 0; i_buf < nCols; i_buf++) printf("%d ", buffer[i_buf]);
+					printf("\n");
+				
+			}
+
+		}
+
+}
 
 
 // Ghost Rows: In order to compute the envolve we need to send the first row (ghost) to the upper neighbor and the last
@@ -105,48 +156,9 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 
 
 	//TODO: Display current grid:
-		
-		//send data to the root, if I'm not the root
-		if( gridBlock->rank != MPI_root){
-			//send all rows
-			for( i=1; i < gridBlock->numRows_ghost - 1; i++ )
-				MPI_Send(&gridBlock->block[i][1], 1 , row_block_without_ghost , MPI_root , 0 , MPI_COMM_WORLD);
-		}
-		
-		
-		if(gridBlock->rank == MPI_root){//if I'm the root: print and receive
-
-			//print current grid
-			for( i=1; i < gridBlock->numRows_ghost - 1; i++ ){
-				for( j=1; j < gridBlock->numCols_ghost - 1; j++ )
-					printf("%d ", gridBlock->block[i][j] );
-				printf("\n");
-			}
-
-			int src, rec_idx;
-			//Receive form other nodes ( excluding the root, 0 )
-			for(src=1; src < gridBlock-> mpi_size; src++ ){
-
-				// I need know how much rows the root must receive, are different for some node
-
-				// TODO: Try a better solution: every node kowns the dimentions of the blocks of the other nodes
-
-				//For now, I can compute the number of rows of each node
-
-				int nRows_rec = nRows / gridBlock -> mpi_size;
-
-				if( src == gridBlock -> mpi_size - 1) nRows_rec += nRows % gridBlock -> mpi_size;
-
-				int buffer[nCols];
-
-				for( rec_idx = 0; rec_idx < nRows_rec ; rec_idx++)
-					MPI_Recv( &buffer[0], nCols, MPI_UNSIGNED , src , 0 , MPI_COMM_WORLD, &stat);
-			}
-		
-		}
-
 	
-
+	display(&gridBlock, nRows, nCols);
+		
 	//Update to current grid to the next grid
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++){
 		for (j = 1; j < gridBlock->numRows_ghost - 1; j++){
@@ -194,8 +206,12 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	
 	for (int t = 0; t < time; t++){
 
-			evolve_block(gridBlock, next_gridBlock, nRows, nCols);
-		}
+
+		evolve_block(gridBlock, next_gridBlock, nRows, nCols);
+
+		fflush(stdout);
+		usleep(200000);
+	}
 	
 }
 
@@ -268,9 +284,6 @@ int main(int argc, char **argv)
 
 	int upper_neighbour = get_upper_neighbour(size, rank);
 	int lower_neighbour = get_lower_neighbour(size, rank);
-
-	//printf("\nRank: %d --> Upper Neighbour: %d\n",rank, upper_neighbour);
-	//printf("\nRank: %d --> Lower Neighbour: %d\n",rank, lower_neighbour);
 
 	struct grid_block blockGrid;
 	
