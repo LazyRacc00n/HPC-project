@@ -20,12 +20,11 @@ void evolve(void *u, int w, int h) {
 	unsigned new[h][w];
 	int x,y,x1,y1,n;
 	
-	#pragma #pragma omp single shared(new, univ) schedule(static)
+	#pragma omp parallel for
 	for ( y = 0; y < h; y++) 
         for ( x = 0; x < w; x++) {
 		    n = 0;
 
-            #pragma omp taskloop firstprivate(n)
 			// look at the 3x3 neighbourhood
 		    for (y1 = y - 1; y1 <= y + 1; y1++)
 			    for (x1 = x - 1; x1 <= x + 1; x1++)
@@ -37,9 +36,10 @@ void evolve(void *u, int w, int h) {
 		
 	    }
 	
-	#pragma omp parallel for private(x) shared(new, univ) schedule(static)
+	//#pragma omp parallel for private(x) shared(new, univ) schedule(static)
 	// update the board
-	for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+	//for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+	univ = (unsigned int (*)[w]) new;
 }
  
  
@@ -51,6 +51,7 @@ void game(int w, int h, int t, int threads) {
 	double tot_time = 0.;
 
 	//initialization
+	srand(10);
 	for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 	
 	if (x > 1000) printbig(univ, w, h,0);
