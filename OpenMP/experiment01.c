@@ -9,7 +9,6 @@
 #include "../utils.h"
 
 
-
 /*
 * a cell is born, if it has exactly three neighbours 
 * a cell dies of loneliness, if it has less than two neighbours 

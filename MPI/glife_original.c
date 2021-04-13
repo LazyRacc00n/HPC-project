@@ -74,6 +74,7 @@ void game(int w, int h, int t) {
 	struct timeval start, end;
 	
 	//initialization
+	//srand(10);
 	for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 	
 	if (x > 1000) printbig(univ, w, h,0);
