@@ -78,7 +78,7 @@ void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost,
 //function for initialize blocks
 void init_grid_block(struct grid_block *gridBlock)
 {
-	srand(10);
+	//srand(time(NULL));
 	
 	int i, j;
 
@@ -95,16 +95,18 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 
 	//send data to the root, if I'm not the root
 	if (gridBlock->rank != MPI_root)
-	{
+	{	
+		int numRows = gridBlock->numRows_ghost - 3;
+		int numCols = gridBlock->numCols_ghost - 3;
 		//send all rows
-		for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
-			MPI_Send(&gridBlock->block[i][1], nCols, MPI_INT, MPI_root, 0, MPI_COMM_WORLD);
+		//for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
+		MPI_Send(&gridBlock->block[1][1], numRows*numCols, MPI_UNSIGNED, MPI_root, 0, MPI_COMM_WORLD);
 	}
 	else{ 
 		
 		//if I'm the root: print and receive
 
-		//printf("\n-------------------------------------Time Step - %d ------------------------------------------\n\n", t );
+		printf("\n-------------------------------------Time Step - %d ------------------------------------------\n\n", t );
 		//print current grid
 		
 	
@@ -118,13 +120,12 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 		}
 		*/
 
-		print_block(gridBlock);
+		//print_block(gridBlock);
 
-		int src, rec_idx, i_buf;
+		int src, rec_idx;
 
 		//Receive form other nodes ( excluding the root, 0 )
 		for (src = 1; src < gridBlock->mpi_size; src++){
-
 
 			// I need know how much rows the root must receive, are different for some node
 			//For now, I can compute the number of rows of each node
@@ -134,26 +135,32 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 			if (src == gridBlock->mpi_size - 1)
 				nRows_rec += nRows % gridBlock->mpi_size;
 
-			int buffer[nCols];
-
+			unsigned int buffer[nRows_rec][nCols];
+			int i_buf, j_buf;
 			for (rec_idx = 0; rec_idx < nRows_rec; rec_idx++){
 				
-				MPI_Recv(&buffer[0], nCols, MPI_INT, src, 0, MPI_COMM_WORLD, &stat);
+				MPI_Recv(&buffer[0][0], nRows_rec*nCols, MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
 				//print_received_row(buffer, nCols);
 				
-				for (i_buf = 0; i_buf < nCols; i_buf++)
-					printf(buffer[i_buf] == ALIVE ? "\033[07m  \033[m" : "  ");
-				printf("\033[E");
-				
+				/*
+				for (i_buf = 0; i_buf < nRows_rec; i_buf++){
+					for( j_buf = 0; j_buf < nCols; j_buf++ )
+						printf("%d ", buffer[i_buf][j_buf]);
+					printf("\n");
+				}
+				*/
+
+				printf("\n\n");
+					
 			}
 
 
 		}
 
-		fflush(stdout);
+		//fflush(stdout);
 
 	}
-	usleep(160000);
+	//usleep(160000);
 }
 
 
@@ -168,46 +175,6 @@ void print_buffer(struct grid_block *gridBlock, unsigned int *buffer) {
         printf("\033[E");
     }
 }
-
-
-void display_version2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost, int t)
-{
-
-	int i, j, src;
-	MPI_Status stat;
-
-	int rowLocal = gridBlock->numRows_ghost - 2;
-	int colsLocal = gridBlock->numCols_ghost - 2;
-
-	int rowBuf = rowLocal + gridBlock->remained_rows;
-
-	if( gridBlock -> rank == 10){
-
-		//print root chunk
-		print_block(gridBlock);
-		
-		/*
-		unsigned int buffer[rowBuf][colsLocal];
-
-		// receive blocks from the other nodes
-		for(src = 1; src < gridBlock->mpi_size; src++){
-			MPI_Recv(&buffer[0][0], rowBuf * colsLocal, MPI_INT, src, 0, MPI_COMM_WORLD, &stat);
-			print_buffer(gridBlock, &buffer[0][0]);
-			printf("");
-		}
-		*/
-		fflush(stdout);
-		
-	}/*else
-		MPI_Send(&gridBlock->block[1][1], rowBuf * colsLocal, MPI_INT, MPI_root, 0, MPI_COMM_WORLD);
-
-	*/
-
-//usleep(150000);
-}
-
-
-
 
 
 // Ghost Rows: In order to compute the envolve we need to send the first row (ghost) to the upper neighbor and the last
@@ -229,10 +196,10 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 	MPI_Send(&gridBlock->block[gridBlock->numRows_ghost - 2][0], 1, row_block_type, gridBlock->lower_neighbour, 0, MPI_COMM_WORLD);
 
 	// receive from below using  buffer the ghost row as receiver
-	MPI_Recv(&gridBlock->block[gridBlock->numRows_ghost - 1][0], gridBlock->numCols_ghost, MPI_INT, gridBlock->lower_neighbour, 0, MPI_COMM_WORLD, &stat);
+	MPI_Recv(&gridBlock->block[gridBlock->numRows_ghost - 1][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->lower_neighbour, 0, MPI_COMM_WORLD, &stat);
 
 	// receive from top using  the ghost row as receiver buffer
-	MPI_Recv(&gridBlock->block[0][0], gridBlock->numCols_ghost, MPI_INT, gridBlock->upper_neighbour, 0, MPI_COMM_WORLD, &stat);
+	MPI_Recv(&gridBlock->block[0][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->upper_neighbour, 0, MPI_COMM_WORLD, &stat);
 
 
 
@@ -247,25 +214,6 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 		gridBlock->block[i][gridBlock->numCols_ghost - 1] = gridBlock->block[i][1];
 	}
 
-
-/*
-	TEST COMMUNICATION NEIGHBOURS:
-
-	if( gridBlock->rank==2){
-
-		printf("\n NODE rank %d: \n", gridBlock->rank);
-
-		for (i = 0; i < gridBlock->numRows_ghost; i++){
-		
-			for (j = 0; j < gridBlock->numCols_ghost; j++)
-				printf("%d ", gridBlock->block[i][j]);
-		
-			printf("\n");
-		}
-
-	}
-
-*/
 
 	//Update to current grid to the next grid
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++){
@@ -314,10 +262,10 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	MPI_Datatype row_block_type, row_block_without_ghost;
 
 	// for the envolve
-	MPI_Type_contiguous(gridBlock->numCols_ghost, MPI_INT, &row_block_type);
+	MPI_Type_contiguous(gridBlock->numCols_ghost, MPI_UNSIGNED, &row_block_type);
 
 	// for the display
-	MPI_Type_contiguous(gridBlock->numCols_ghost - 2, MPI_INT, &row_block_without_ghost);
+	MPI_Type_contiguous(gridBlock->numCols_ghost - 2, MPI_UNSIGNED, &row_block_without_ghost);
 	MPI_Type_commit(&row_block_type);
 	MPI_Type_commit(&row_block_without_ghost);
 
@@ -384,9 +332,9 @@ int main(int argc, char **argv)
 	//send number of columns and number of rows to each process
 
 	// send rows
-	MPI_Bcast(&nRows, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
-	MPI_Bcast(&nCols, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
-	MPI_Bcast(&time, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
+	MPI_Bcast(&nRows, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
+	MPI_Bcast(&nCols, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
+	MPI_Bcast(&time, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
 
 	//Each process compute the size of its chunks
 	int n_rows_local = nRows / size;

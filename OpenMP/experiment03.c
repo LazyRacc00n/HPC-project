@@ -26,7 +26,6 @@ void evolve(void *u, int w, int h, int threads) {
 		int x,y,x1,y1,n;
         
 		#pragma omp for  schedule(static) collapse(2) 
-        //#pragma omp  for  schedule(static) if(h >= threads) 
 		for ( y = 0; y < h; y++) 
         	for ( x = 0; x < w; x++) {
 		    	n = 0;
