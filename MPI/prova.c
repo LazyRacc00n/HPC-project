@@ -32,6 +32,7 @@ void fill(unsigned int*** a) {
 
 int main(int argc, char **argv){
 
+    /*
     unsigned int **grid, **next_grid;
 
   
@@ -73,7 +74,9 @@ int main(int argc, char **argv){
 
 			}
 	}
+    */
 
+   
     return 0;
     
         

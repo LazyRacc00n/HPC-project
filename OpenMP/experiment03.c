@@ -8,6 +8,8 @@
 
 #include "../utils.h"
 
+
+
 /*
 * a cell is born, if it has exactly three neighbours 
 * a cell dies of loneliness, if it has less than two neighbours 
@@ -15,15 +17,16 @@
 * a cell survives to the next generation, if it does not die of loneliness 
 * or overcrowding 
 */
-void evolve(void *u, int w, int h) {
+void evolve(void *u, int w, int h, int threads) {
 	unsigned (*univ)[w] = u;
 	unsigned new[h][w];
 
 	#pragma omp parallel shared(new, univ) 
 	{
 		int x,y,x1,y1,n;
-
-		#pragma omp  for  schedule(dynamic)
+        
+		#pragma omp for  schedule(static) collapse(2) 
+        //#pragma omp  for  schedule(static) if(h >= threads) 
 		for ( y = 0; y < h; y++) 
         	for ( x = 0; x < w; x++) {
 		    	n = 0;
@@ -40,8 +43,9 @@ void evolve(void *u, int w, int h) {
 	    }
 	
 		// update the board
-		#pragma omp for schedule(static)
+		#pragma omp for schedule(static) collapse(2) 
 		for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+        
 	}
 
 	
@@ -68,7 +72,7 @@ void game(int w, int h, int t, int threads) {
 		gettimeofday(&start, NULL);
 		
 		// lets evolve the current generation
-		evolve(univ, w, h);
+		evolve(univ, w, h, threads);
 
 		// get ending time of iteration z
 		gettimeofday(&end, NULL);
@@ -85,7 +89,7 @@ void game(int w, int h, int t, int threads) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Exp02-OMP-%d-%d-%d.txt", w, h, t);
+	sprintf(fileName, "Exp03-OMP-%d-%d-%d.txt", w, h, t);
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 

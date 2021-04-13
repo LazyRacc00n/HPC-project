@@ -16,6 +16,7 @@ struct grid_block{
 
     int rank;
     int mpi_size;
+    int remained_rows;
 
     unsigned int **block;
     
