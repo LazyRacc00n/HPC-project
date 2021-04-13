@@ -24,8 +24,6 @@ void allocate_empty_grid(unsigned int ***grid, int rows, int cols)
 }
 
 
-
-
 void print_block(struct grid_block* gridBlock) {
     int x, y;
 
@@ -87,8 +85,7 @@ void init_grid_block(struct grid_block *gridBlock)
 			gridBlock->block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 }
 
-void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost, int t)
-{
+void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost, MPI_Datatype block_type){
 
 	int i, j;
 	MPI_Status stat;
@@ -105,21 +102,7 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 	else{ 
 		
 		//if I'm the root: print and receive
-
-		printf("\n-------------------------------------Time Step - %d ------------------------------------------\n\n", t );
-		//print current grid
 		
-	
-		
-		/*
-		for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
-		{
-			for (j = 1; j < gridBlock->numCols_ghost - 1; j++)
-				printf("%d ", gridBlock->block[i][j]);
-			printf("\n");
-		}
-		*/
-
 		//print_block(gridBlock);
 
 		int src, rec_idx;
@@ -142,24 +125,21 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 				MPI_Recv(&buffer[0][0], nRows_rec*nCols, MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
 				//print_received_row(buffer, nCols);
 				
-				/*
+				
 				for (i_buf = 0; i_buf < nRows_rec; i_buf++){
 					for( j_buf = 0; j_buf < nCols; j_buf++ )
 						printf("%d ", buffer[i_buf][j_buf]);
 					printf("\n");
 				}
-				*/
-
+				
 				printf("\n\n");
 					
 			}
 
 
 		}
-
-		//fflush(stdout);
-
 	}
+	//fflush(stdout);
 	//usleep(160000);
 }
 
@@ -200,8 +180,6 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 
 	// receive from top using  the ghost row as receiver buffer
 	MPI_Recv(&gridBlock->block[0][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->upper_neighbour, 0, MPI_COMM_WORLD, &stat);
-
-
 
 
 	//ghost colums:
@@ -259,13 +237,19 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 
 	//TODO: see difference of performance in seding using derived datatype and without
 	// create a derived datatype to send a row
-	MPI_Datatype row_block_type, row_block_without_ghost;
+	MPI_Datatype row_block_type, row_block_without_ghost block_type;
 
 	// for the envolve
 	MPI_Type_contiguous(gridBlock->numCols_ghost, MPI_UNSIGNED, &row_block_type);
 
 	// for the display
 	MPI_Type_contiguous(gridBlock->numCols_ghost - 2, MPI_UNSIGNED, &row_block_without_ghost);
+
+	//TODO: da finire type vector
+	//to send block
+	MPI_Type_vector( gridBlock->numRows_ghost - 2 , int blocklength , int stride , MPI_Datatype oldtype , MPI_Datatype* newtype);
+
+	//allocate datatypes
 	MPI_Type_commit(&row_block_type);
 	MPI_Type_commit(&row_block_without_ghost);
 

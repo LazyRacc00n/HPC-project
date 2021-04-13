@@ -87,8 +87,6 @@ void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost,
 //function for initialize blocks
 void init_grid_block(struct grid_block *gridBlock)
 {
-	//srand(80);
-	
 	int i, j;
 
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
@@ -96,7 +94,7 @@ void init_grid_block(struct grid_block *gridBlock)
 			gridBlock->block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 }
 
-void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost, int t)
+void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost)
 {
 
 	int i, j;
@@ -112,18 +110,6 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 	else{ 
 		
 		//if I'm the root: print and receive
-
-		//printf("\n-------------------------------------Time Step - %d ------------------------------------------\n\n", t );
-		//print current grid
-		
-		/*
-		for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
-		{
-			for (j = 1; j < gridBlock->numCols_ghost - 1; j++)
-				printf("%d ", gridBlock->block[i][j]);
-			printf("\n");
-		}
-		*/
 
 		print_block(gridBlock);
 
@@ -145,16 +131,14 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 			for (rec_idx = 0; rec_idx < nRows_rec; rec_idx++){
 				
 				MPI_Recv(&buffer[0], nCols, MPI_INT, src, 0, MPI_COMM_WORLD, &stat);
-				print_received_row(buffer, nCols);
-				
+				print_received_row(buffer, nCols);	
 			}
-
 		}
 
-		fflush(stdout);
-		usleep(200000);
-
 	}
+
+	fflush(stdout);
+	usleep(200000);
 
 }
 
@@ -169,8 +153,6 @@ void print_buffer(struct grid_block *gridBlock, unsigned int *buffer) {
         printf("\033[E");
     }
 }
-
-
 
 
 // Ghost Rows: In order to compute the envolve we need to send the first row (ghost) to the upper neighbor and the last
@@ -209,7 +191,6 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 	}
 
 
-
 	//Update to current grid to the next grid
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++){
 
@@ -220,10 +201,7 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 			for (x = i - 1; x <= i + 1; x++)
 				for (y = j - 1; y <= j + 1; y++)
 					if ((i != x || j != y) && gridBlock->block[x][y]) alive_neighbours++;
-
-
-			//printf("\nAlive Neighbours: %d \n", alive_neighbours);
-			
+		
 			if (gridBlock->block[i][j] && alive_neighbours < 2)
 				next_gridBlock[i][j] = DEAD;
 
@@ -237,7 +215,6 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 				next_gridBlock[i][j] = ALIVE;
 		}
 	}
-
 
 
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
@@ -270,7 +247,7 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 
 	for (t = 0; t < time; t++){
 
-		display(gridBlock, nRows, nCols, row_block_without_ghost, t);
+		display(gridBlock, nRows, nCols, row_block_without_ghost);
 		evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
 	
 	}
@@ -279,6 +256,7 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	MPI_Type_free(&row_block_type);
 	MPI_Type_free(&row_block_without_ghost);
 
+	//free grids
 	free_grid(&gridBlock->block, gridBlock->numRows_ghost, gridBlock->numCols_ghost);
 	free_grid(&next_gridBlock, gridBlock->numRows_ghost, gridBlock->numCols_ghost);
 }
