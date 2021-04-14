@@ -104,7 +104,7 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 		//printf("\nROWS: %d COLS: %d\n", numRows, numCols);
 		//send all rows
 		//for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
-		MPI_Send(&(gridBlock->block)[1][1], numRows*numCols, MPI_UNSIGNED, MPI_root, 0, MPI_COMM_WORLD);
+		MPI_Send(&gridBlock->block[1][1], numRows*numCols, MPI_UNSIGNED, MPI_root, 0, MPI_COMM_WORLD);
 	}
 	else{ 
 		
