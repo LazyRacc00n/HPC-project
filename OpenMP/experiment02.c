@@ -23,7 +23,7 @@ void evolve(void *u, int w, int h) {
 	{
 		int x,y,x1,y1,n;
 
-		#pragma omp  for  schedule(dynamic)
+		#pragma omp  for  schedule(static)
 		for ( y = 0; y < h; y++) 
         	for ( x = 0; x < w; x++) {
 		    	n = 0;
@@ -40,11 +40,9 @@ void evolve(void *u, int w, int h) {
 	    }
 	
 		// update the board
-		#pragma omp for schedule(static)
+		#pragma omp for  schedule(static)
 		for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 	}
-
-	
 }
  
  
@@ -85,7 +83,7 @@ void game(int w, int h, int t, int threads) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Exp02-OMP-%d-%d-%d.txt", w, h, t);
+	sprintf(fileName, "Exp01-OMP-%d-%d-%d.txt", w, h, t);
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
@@ -114,13 +112,13 @@ int main(int c, char **v) {
 
 	// set the threads with OpenMP
 	omp_set_num_threads(threads);
-
+	int actual_threads = omp_get_num_threads();
 	
 	// execute the game code
 	game(w, h, t, threads);
 
 	// check the actual number of threads used by the program
-	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, omp_get_num_threads());
+	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, actual_threads);
 	
 }
 

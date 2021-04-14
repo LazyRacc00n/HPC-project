@@ -94,11 +94,17 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 	{	
 		int numRows = gridBlock->numRows_ghost - 2;
 		int numCols = gridBlock->numCols_ghost - 2;
-
+		/*
+		for (i = 1; i < numRows+1; i++){
+				for( j = 1; j < nCols+1; j++ )
+					printf("%d ", gridBlock->block[i][j]);
+				printf("\n");
+		}
+		*/
 		//printf("\nROWS: %d COLS: %d\n", numRows, numCols);
 		//send all rows
 		//for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
-		MPI_Send(&gridBlock->block[1][1], 1, block_type, MPI_root, 0, MPI_COMM_WORLD);
+		MPI_Send(&(gridBlock->block)[1][1], numRows*numCols, MPI_UNSIGNED, MPI_root, 0, MPI_COMM_WORLD);
 	}
 	else{ 
 		
@@ -107,7 +113,7 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 		//print_block(gridBlock);
 
 		int src, rec_idx, i_buf, j_buf;
-
+		
 		//Receive form other nodes ( excluding the root, 0 )
 		for (src = 1; src < gridBlock->mpi_size; src++){
 
@@ -115,30 +121,30 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 			//For now, I can compute the number of rows of each node
 
 			int nRows_received = nRows / gridBlock->mpi_size;
-
 			if (src == gridBlock->mpi_size - 1)
 				nRows_received += nRows % gridBlock->mpi_size;
-
-			unsigned int buffer[nRows_received][nCols];
-		
 			//for (rec_idx = 0; rec_idx < nRows_received; rec_idx++){
-				
+			
+			unsigned int buffer[nRows_received][nCols];
 			MPI_Recv(&buffer[0][0], nRows_received*nCols, MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
 				//print_received_row(buffer, nCols);
 
-			//printf("\nROWS2: %d COLS2: %d\n", nRows_received, nCols);
 			// to verfy if it works: if the blocks are recived correctly 
 			// TODO: Implement the function that shows a block	
 			
-			for (i_buf = 0; i_buf < nRows_received; i_buf++){
-				for( j_buf = 0; j_buf < nCols; j_buf++ )
-					printf("%d ", buffer[i_buf][j_buf]);
-				printf("\n");
-			}
+			if( src == 1 ){
+
+				for (i_buf = 0; i_buf < nRows_received; i_buf++){
+					for( j_buf = 0; j_buf < nCols; j_buf++ )
+						printf("%d ", buffer[i_buf][j_buf]);
+					printf("\n");
+				}
 				
 			printf("\n\n");
 
-						
+			}
+			
+			
 		}
 
 	}

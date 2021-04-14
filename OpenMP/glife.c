@@ -40,31 +40,36 @@ void printbig(void *u, int w, int h, int z) {
 }
 
 
-
+/*
+* a cell is born, if it has exactly three neighbours 
+* a cell dies of loneliness, if it has less than two neighbours 
+* a cell dies of overcrowding, if it has more than three neighbours 
+* a cell survives to the next generation, if it does not die of loneliness 
+* or overcrowding 
+*/
 void evolve(void *u, int w, int h) {
 	unsigned (*univ)[w] = u;
 	unsigned new[h][w];
-	int x,y,x1,y1;
- 
-	for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
-		int n = 0;
-		for (y1 = y - 1; y1 <= y + 1; y1++)
-			for (x1 = x - 1; x1 <= x + 1; x1++)
-				if (univ[(y1 + h) % h][(x1 + w) % w]) n++;
-		if (univ[y][x]) n--;
-		new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
-		/*
-		 * a cell is born, if it has exactly three neighbours 
-		 * a cell dies of loneliness, if it has less than two neighbours 
-		 * a cell dies of overcrowding, if it has more than three neighbours 
-		 * a cell survives to the next generation, if it does not die of loneliness 
-		 * or overcrowding 
-		 */
-	}
+	int x,y,x1,y1,n;
 	
-	for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+	for ( y = 0; y < h; y++) 
+        for ( x = 0; x < w; x++) {
+		    n = 0;
+
+			// look at the 3x3 neighbourhood
+		    for (y1 = y - 1; y1 <= y + 1; y1++)
+			    for (x1 = x - 1; x1 <= x + 1; x1++)
+
+					// skip the current cell [y, x]
+				    if ((y != y1 || x != x1) && univ[(y1 + h) % h][(x1 + w) % w]) n++;
+
+		    new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
+		
+	    }
+	
+	// update the board
+	for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 }
- 
  
  
 void game(int w, int h, int t) {
