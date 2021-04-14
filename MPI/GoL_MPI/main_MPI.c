@@ -29,7 +29,6 @@ void free_grid(unsigned int ***grid, int rows, int cols){
 	int i = 0;
 
 	for( i = 0; i < rows; i++) free( (*grid)[i] );
-
 	free(*grid);
 
 }
