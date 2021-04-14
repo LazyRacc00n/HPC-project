@@ -64,7 +64,6 @@ void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost,
 	gridBlock->lower_neighbour = lower_neighbour;
 	gridBlock->rank = rank;
 	gridBlock->mpi_size = size;
-	gridBlock->remained_rows = ( nRows_with_ghost - 2 ) % size;
 
 
 	//allocate memory for an array of pointers and then allocate memory for every row
@@ -93,11 +92,13 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 	//send data to the root, if I'm not the root
 	if (gridBlock->rank != MPI_root)
 	{	
-		int numRows = gridBlock->numRows_ghost - 3;
-		int numCols = gridBlock->numCols_ghost - 3;
+		int numRows = gridBlock->numRows_ghost - 2;
+		int numCols = gridBlock->numCols_ghost - 2;
+
+		//printf("\nROWS: %d COLS: %d\n", numRows, numCols);
 		//send all rows
 		//for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
-		MPI_Send(&gridBlock->block[1][1], numRows*numCols, MPI_UNSIGNED, MPI_root, 0, MPI_COMM_WORLD);
+		MPI_Send(&gridBlock->block[1][1], 1, block_type, MPI_root, 0, MPI_COMM_WORLD);
 	}
 	else{ 
 		
@@ -119,14 +120,16 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 				nRows_received += nRows % gridBlock->mpi_size;
 
 			unsigned int buffer[nRows_received][nCols];
-			int 
+		
 			//for (rec_idx = 0; rec_idx < nRows_received; rec_idx++){
 				
 			MPI_Recv(&buffer[0][0], nRows_received*nCols, MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
 				//print_received_row(buffer, nCols);
 
+			//printf("\nROWS2: %d COLS2: %d\n", nRows_received, nCols);
 			// to verfy if it works: if the blocks are recived correctly 
 			// TODO: Implement the function that shows a block	
+			
 			for (i_buf = 0; i_buf < nRows_received; i_buf++){
 				for( j_buf = 0; j_buf < nCols; j_buf++ )
 					printf("%d ", buffer[i_buf][j_buf]);
@@ -134,7 +137,8 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 			}
 				
 			printf("\n\n");
-					
+
+						
 		}
 
 	}
@@ -244,7 +248,7 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 
 	//TODO: da finire type vector
 	//to send block
-	MPI_Type_vector( gridBlock->numRows_ghost - 2 , gridBlock->numCols_ghost - 2 , gridBlock->numCols_ghost - 2 , MPI_UNSIGNED , &block_type);
+	MPI_Type_vector( gridBlock->numRows_ghost - 2 , gridBlock->numCols_ghost - 2 , gridBlock->numCols_ghost, MPI_UNSIGNED , &block_type);
 
 	//allocate datatypes
 	MPI_Type_commit(&row_block_type);
@@ -257,10 +261,10 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	allocate_empty_grid(&next_gridBlock, gridBlock->numRows_ghost, gridBlock->numCols_ghost);
 
 	for (t = 0; t < time; t++)
-	{
-
+	{	
 		display(gridBlock, nRows, nCols, block_type);
 		evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
+		
 	}
 
 	// free the derived datatype

@@ -309,6 +309,7 @@ int main(int argc, char **argv)
 	if (time <= 0)
 		time = 100;
 	
+	//TODO: VALUTARE SE STE BARRIER  SERVONO A QUALCOSA
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	//send number of columns and number of rows to each process
@@ -328,9 +329,6 @@ int main(int argc, char **argv)
 	// recever buffer
 	int n_rows_local_with_ghost = n_rows_local + 2;
 	int n_cols_with_ghost = nCols + 2;
-
-
-	//printf("\nRank: %d - Rows local: %d - Cols: %d\n", rank, n_rows_local, nCols);
 
 	int upper_neighbour = get_upper_neighbour(size, rank);
 	int lower_neighbour = get_lower_neighbour(size, rank);
