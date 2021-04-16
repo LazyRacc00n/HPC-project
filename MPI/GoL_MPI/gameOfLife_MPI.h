@@ -1,4 +1,10 @@
 #include "mpi.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
+
+
 
 #define ALIVE 1
 #define DEAD 0
@@ -8,15 +14,15 @@
 //structure that represent a block assigned to a node
 struct grid_block{
 
-    int numRows_ghost;
-    int numCols_ghost;
+    int numRows_ghost; // number of rows of the local block + ghost rows
+    int numCols_ghost; // number of columns of the local block + ghost columns
 
-    int upper_neighbour;
-    int lower_neighbour;
+    int upper_neighbour; // rank of upper nodes
+    int lower_neighbour; // rank of lower nodes
 
-    int rank;
-    int mpi_size;
-
-    unsigned int **block;
+    int rank; // rank of the node
+    int mpi_size; // total size of the communicator ( MPI_COMM_WORLD )
+    
+    unsigned int **block; //matrix that represent the local grid
     
 };
