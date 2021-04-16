@@ -337,6 +337,7 @@ int main(int argc, char **argv)
 
 	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size);
 
+	
 	game_block(&blockGrid, time, nRows, nCols);
 
 	MPI_Barrier(MPI_COMM_WORLD);
