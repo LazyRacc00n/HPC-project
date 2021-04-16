@@ -20,6 +20,7 @@ void free_grid(unsigned int **grid){
 }
 
 
+// Allocate a matrix so as to have elements contiguos in memory
 unsigned int **allocate_empty_grid(int rows, int cols)
 {
 
@@ -249,6 +250,7 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 		//Random Initialization of the grid assigned to each node
 		init_grid_block(gridBlock);
 		
+		//allocate the next grid, to compute the evolution
 		next_gridBlock = allocate_empty_grid(gridBlock->numRows_ghost, gridBlock->numCols_ghost);
 
 		for (t = 0; t < time; t++)

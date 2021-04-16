@@ -13,26 +13,27 @@
 
 #include "gameOfLife_MPI.h"
 
-void allocate_empty_grid(unsigned int ***grid, int rows, int cols)
+
+// Allocate a matrix so as to have elements contiguos in memory
+unsigned int **allocate_empty_grid(int rows, int cols)
 {
 
-	int i, j;
+	int i;
 	//allocate memory for an array of pointers and then allocate memory for every row
-	*grid = (unsigned int **)malloc(rows * sizeof(unsigned int *));
+	unsigned int *grid = (unsigned int *)malloc(rows *cols* sizeof(unsigned int));
+	unsigned int **array = (unsigned int **)malloc(rows*sizeof(unsigned int*));
 	for (i = 0; i < rows; i++)
-		(*grid)[i] = (unsigned int *)malloc(cols * sizeof(unsigned int));
+		array[i] = &(grid[cols*i]);
+
+	return array;
 }
 
+void free_grid(unsigned int **grid){
 
-void free_grid(unsigned int ***grid, int rows, int cols){
-
-	int i = 0;
-
-	for( i = 0; i < rows; i++) free( (*grid)[i] );
-	free(*grid);
+	free(grid[0]);
+	free(grid);
 
 }
-
 
 
 void print_block(struct grid_block* gridBlock) {
@@ -78,9 +79,7 @@ void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost,
 
 
 	//allocate memory for an array of pointers and then allocate memory for every row
-	gridBlock->block = (unsigned int **)malloc(gridBlock->numRows_ghost * sizeof(unsigned int *));
-	for (i = 0; i < gridBlock->numRows_ghost; i++)
-		gridBlock->block[i] = (unsigned int *)malloc(gridBlock->numCols_ghost * sizeof(unsigned int));
+	gridBlock->block = allocate_empty_grid(gridBlock->numRows_ghost, gridBlock->numCols_ghost);
 }
 
 //function for initialize blocks
@@ -242,7 +241,8 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 
 	//Random Initialization of the grid assigned to each node
 	init_grid_block(gridBlock);
-	allocate_empty_grid(&next_gridBlock, gridBlock->numRows_ghost, gridBlock->numCols_ghost);
+
+	next_gridBlock = allocate_empty_grid(gridBlock->numRows_ghost, gridBlock->numCols_ghost);
 
 	for (t = 0; t < time; t++){
 
@@ -256,8 +256,8 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	MPI_Type_free(&row_block_without_ghost);
 
 	//free grids
-	free_grid(&gridBlock->block, gridBlock->numRows_ghost, gridBlock->numCols_ghost);
-	free_grid(&next_gridBlock, gridBlock->numRows_ghost, gridBlock->numCols_ghost);
+	free_grid(gridBlock->block);
+	free_grid(next_gridBlock);
 }
 
 // obtain the upper neighbour
