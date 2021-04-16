@@ -19,6 +19,7 @@ void free_grid(unsigned int **grid){
 
 }
 
+
 unsigned int **allocate_empty_grid(int rows, int cols)
 {
 
@@ -89,17 +90,15 @@ void init_grid_block(struct grid_block *gridBlock)
 			gridBlock->block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 }
 
-void print_buffer(unsigned int *buffer, int rows, int cols)
+void print_buffer(int rows, int cols, unsigned int buffer[rows][cols] )
 {
 
-	int x, y;
-
-	for (x = 0; x < rows; x++)
+	int i, j;
+	for (i = 0; i < rows; i++)
 	{
-		for (y = 0; y < cols; y++)
-			printf("%d ", *((buffer + x * cols) + y));
-
-		printf("\n");
+		for (j = 0; j < cols; j++)
+			printf(buffer[i][j] ? "\033[07m  \033[m" : "  ");
+		printf("\033[E");
 	}
 }
 
@@ -122,7 +121,9 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 		else
 		{
 			//if I'm the root: print and receive the blocks of the other nodes
-			//print_block(gridBlock);
+			
+			//print_buffer(gridBlock->block)
+			print_block(gridBlock);
 
 			int src, rec_idx, i_buf, j_buf;
 
@@ -136,37 +137,20 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 				if (src == gridBlock->mpi_size - 1)
 					nRows_received += nRows % gridBlock->mpi_size;
 
-				printf("\nRANK: %d -- nRows: %d \n", src, nRows_received);
 
 				unsigned int buffer[nRows_received][nCols];
 
 
 				MPI_Recv(&(buffer[0][0]), (nRows_received) * (nCols), MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
-				//print_received_row(buffer, nCols);
 
-				// to verfy if it works: if the blocks are recived correctly
-				// TODO: Implement the function that shows a block
-
-				
-				for (i = 0; i < nRows_received; i++)
-				{
-					for ( j = 0; j < nCols; j++)
-					{
-						printf("%d ", buffer[i][j]);
-					}
-					
-					printf("\n");
-				}
-				
-
-				//printf("\n\nBUFFER: \n\n");
-				//print_buffer(&buffer[0][0], nRows_received+2, nCols+2);
+				// shows a block
+				print_buffer(nRows_received, nCols, buffer);
 				
 			}
 		}
 
-		//fflush(stdout);
-		//usleep(160000);
+		fflush(stdout);
+		usleep(160000);
 	}
 
 	// Ghost Rows: In order to compute the envolve we need to send the first row (ghost) to the upper neighbor and the last

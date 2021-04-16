@@ -40,9 +40,8 @@ void evolve(void *u, int w, int h) {
 	    }
 	
 		// update the board
-		//#pragma omp for  schedule(static)
-		//for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
-		univ& = **new;
+		#pragma omp for  schedule(static)
+		for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 	}
 }
  
