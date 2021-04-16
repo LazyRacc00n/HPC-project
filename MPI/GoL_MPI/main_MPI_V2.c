@@ -3,7 +3,6 @@
  *
  * https://www.geeksforgeeks.org/conways-game-life-python-implementation/
  *
- 
 */
 
 #include <stdio.h>
@@ -13,42 +12,50 @@
 
 #include "gameOfLife_MPI.h"
 
-void allocate_empty_grid(unsigned int ***grid, int rows, int cols)
-{
+void free_grid(unsigned int **grid){
 
-	int i, j;
-	//allocate memory for an array of pointers and then allocate memory for every row
-	*grid = (unsigned int **)malloc(rows * sizeof(unsigned int *));
-	for (i = 0; i < rows; i++)
-		(*grid)[i] = (unsigned int *)malloc(cols * sizeof(unsigned int));
+	free(grid[0]);
+	free(grid);
+
 }
 
+unsigned int **allocate_empty_grid(int rows, int cols)
+{
 
-void print_block(struct grid_block* gridBlock) {
-    int x, y;
+	int i;
+	//allocate memory for an array of pointers and then allocate memory for every row
+	unsigned int *grid = (unsigned int *)malloc(rows *cols* sizeof(unsigned int));
+	unsigned int **array = (unsigned int **)malloc(rows*sizeof(unsigned int*));
+	for (i = 0; i < rows; i++)
+		array[i] = &(grid[cols*i]);
 
-    // \033[H -> move cursor to top-left corner;
-    // \033[J -> clear the console.
-    printf("\033[H\033[J");
-    for (x = 1; x < gridBlock->numRows_ghost - 1 ; x++) {
-        for (y = 1; y < gridBlock->numCols_ghost - 1; y++)
-            printf(gridBlock->block[x][y] ? "\033[07m  \033[m" : "  ");
+	return array;
+}
 
-        printf("\033[E");
-    
+void print_block(struct grid_block *gridBlock)
+{
+	int x, y;
+
+	// \033[H -> move cursor to top-left corner;
+	// \033[J -> clear the console.
+	printf("\033[H\033[J");
+	for (x = 1; x < gridBlock->numRows_ghost - 1; x++)
+	{
+		for (y = 1; y < gridBlock->numCols_ghost - 1; y++)
+			printf(gridBlock->block[x][y] ? "\033[07m  \033[m" : "  ");
+
+		printf("\033[E");
 	}
 }
 
-
-
-void print_received_row(int buffer[], int numCols){
+void print_received_row(int buffer[], int numCols)
+{
 
 	int x;
 	//printf("\033[H\033[J");
 	for (x = 0; x < numCols; x++)
-		printf(buffer[x] == ALIVE ? "\033[07m  \033[m" : "  ");//printf(buffer[x] ? "\033[07m  \033[m" : "  ");
+		printf(buffer[x] == ALIVE ? "\033[07m  \033[m" : "  "); //printf(buffer[x] ? "\033[07m  \033[m" : "  ");
 	printf("\033[E");
-	
 }
 
 //function to allocate a block in a node and initialize the field of the struct it
@@ -65,18 +72,16 @@ void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost,
 	gridBlock->rank = rank;
 	gridBlock->mpi_size = size;
 
-
 	//allocate memory for an array of pointers and then allocate memory for every row
-	gridBlock->block = (unsigned int **)malloc(gridBlock->numRows_ghost * sizeof(unsigned int *));
-	for (i = 0; i < gridBlock->numRows_ghost; i++)
-		gridBlock->block[i] = (unsigned int *)malloc(gridBlock->numCols_ghost * sizeof(unsigned int));
+	gridBlock->block = allocate_empty_grid(gridBlock->numRows_ghost, gridBlock->numCols_ghost);
+	
 }
 
 //function for initialize blocks
 void init_grid_block(struct grid_block *gridBlock)
 {
 	//srand(time(NULL));
-	
+
 	int i, j;
 
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
@@ -84,279 +89,274 @@ void init_grid_block(struct grid_block *gridBlock)
 			gridBlock->block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 }
 
-void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype block_type){
+void print_buffer(unsigned int *buffer, int rows, int cols)
+{
+
+	int x, y;
+
+	for (x = 0; x < rows; x++)
+	{
+		for (y = 0; y < cols; y++)
+			printf("%d ", *((buffer + x * cols) + y));
+
+		printf("\n");
+	}
+}
+
+void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype block_type)
+{
 
 	int i, j;
 	MPI_Status stat;
 
 	//send data to the root, if I'm not the root
 	if (gridBlock->rank != MPI_root)
-	{	
-		int numRows = gridBlock->numRows_ghost - 2;
-		int numCols = gridBlock->numCols_ghost - 2;
-		/*
-		for (i = 1; i < numRows+1; i++){
-				for( j = 1; j < nCols+1; j++ )
-					printf("%d ", gridBlock->block[i][j]);
-				printf("\n");
+	{
+		int numRows = gridBlock->numRows_ghost-2;
+		int numCols = gridBlock->numCols_ghost-2;
+
+		unsigned int buff[numRows][numCols];
+
+		MPI_Send(&(gridBlock->block[1][1]), 1, block_type, MPI_root, 0, MPI_COMM_WORLD);
 		}
-		*/
-		//printf("\nROWS: %d COLS: %d\n", numRows, numCols);
-		//send all rows
-		//for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
-		MPI_Send(&gridBlock->block[1][1], numRows*numCols, MPI_UNSIGNED, MPI_root, 0, MPI_COMM_WORLD);
-	}
-	else{ 
-		
-		//if I'm the root: print and receive the blocks of the other nodes
-	
-		//print_block(gridBlock);
+		else
+		{
+			//if I'm the root: print and receive the blocks of the other nodes
+			//print_block(gridBlock);
 
-		int src, rec_idx, i_buf, j_buf;
-		
-		//Receive form other nodes ( excluding the root, 0 )
-		for (src = 1; src < gridBlock->mpi_size; src++){
+			int src, rec_idx, i_buf, j_buf;
 
-			// I need know how much rows the root must receive, are different for some node
-			//For now, I can compute the number of rows of each node
+			//Receive form other nodes ( excluding the root, 0 )
+			for (src = 1; src < gridBlock->mpi_size; src++)
+			{
+				// I need know how much rows the root must receive, are different for some node
+				//For now, I can compute the number of rows of each node
 
-			int nRows_received = nRows / gridBlock->mpi_size;
-			if (src == gridBlock->mpi_size - 1)
-				nRows_received += nRows % gridBlock->mpi_size;
-			//for (rec_idx = 0; rec_idx < nRows_received; rec_idx++){
-			
-			unsigned int buffer[nRows_received][nCols];
-			MPI_Recv(&buffer[0][0], nRows_received*nCols, MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
+				int nRows_received = nRows / gridBlock->mpi_size;
+				if (src == gridBlock->mpi_size - 1)
+					nRows_received += nRows % gridBlock->mpi_size;
+
+				printf("\nRANK: %d -- nRows: %d \n", src, nRows_received);
+
+				unsigned int buffer[nRows_received][nCols];
+
+
+				MPI_Recv(&(buffer[0][0]), (nRows_received) * (nCols), MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
 				//print_received_row(buffer, nCols);
 
-			// to verfy if it works: if the blocks are recived correctly 
-			// TODO: Implement the function that shows a block	
-			
-			if( src == 1 ){
+				// to verfy if it works: if the blocks are recived correctly
+				// TODO: Implement the function that shows a block
 
-				for (i_buf = 0; i_buf < nRows_received; i_buf++){
-					for( j_buf = 0; j_buf < nCols; j_buf++ )
-						printf("%d ", buffer[i_buf][j_buf]);
+				
+				for (i = 0; i < nRows_received; i++)
+				{
+					for ( j = 0; j < nCols; j++)
+					{
+						printf("%d ", buffer[i][j]);
+					}
+					
 					printf("\n");
 				}
 				
-			printf("\n\n");
 
+				//printf("\n\nBUFFER: \n\n");
+				//print_buffer(&buffer[0][0], nRows_received+2, nCols+2);
+				
 			}
-			
-			
 		}
 
+		//fflush(stdout);
+		//usleep(160000);
 	}
-	
-	//fflush(stdout);
-	//usleep(160000);
-}
 
+	// Ghost Rows: In order to compute the envolve we need to send the first row (ghost) to the upper neighbor and the last
+	// row to the lower neighbour. (Try to use dataype to send and check if it improve performance)
+	// Ghost Columns: Copy fisrt column to the last ghost columns
 
-void print_buffer(struct grid_block *gridBlock, unsigned int *buffer) {
-    
-	int x, y;
-
-    for (x = 1; x < gridBlock->numRows_ghost - 1; x++) {
-        for (y = 1; y < gridBlock->numCols_ghost - 1; y++)
-            printf(*((buffer + x*gridBlock->numCols_ghost) + y) == ALIVE ? "\033[07m  \033[m" : "  ");
-
-        printf("\033[E");
-    }
-}
-
-
-// Ghost Rows: In order to compute the envolve we need to send the first row (ghost) to the upper neighbor and the last
-// row to the lower neighbour. (Try to use dataype to send and check if it improve performance)
-// Ghost Columns: Copy fisrt column to the last ghost columns
-
-//TODO: evolution of game of a block, and manage neighbours
-void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, int nRows, int nCols, MPI_Datatype row_block_type)
-{
-
-	int i, j, t, x, y;
-
-	MPI_Status stat;
-
-	// send first row of the block to the upper neighbour
-	MPI_Send(&gridBlock->block[1][0], 1, row_block_type, gridBlock->upper_neighbour, 0, MPI_COMM_WORLD);
-
-	// send last row of the block to the lower neighbour
-	MPI_Send(&gridBlock->block[gridBlock->numRows_ghost - 2][0], 1, row_block_type, gridBlock->lower_neighbour, 0, MPI_COMM_WORLD);
-
-	// receive from below using  buffer the ghost row as receiver
-	MPI_Recv(&gridBlock->block[gridBlock->numRows_ghost - 1][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->lower_neighbour, 0, MPI_COMM_WORLD, &stat);
-
-	// receive from top using  the ghost row as receiver buffer
-	MPI_Recv(&gridBlock->block[0][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->upper_neighbour, 0, MPI_COMM_WORLD, &stat);
-
-
-	//ghost colums:
-	// 		-copy last column to the fisrt column
-	// 		-copy the fisrt column to the last last column
-
-	for (i = 0; i < gridBlock->numRows_ghost; i++)
+	//TODO: evolution of game of a block, and manage neighbours
+	void evolve_block(struct grid_block * gridBlock, unsigned int **next_gridBlock, int nRows, int nCols, MPI_Datatype row_block_type)
 	{
-		gridBlock->block[i][0] = gridBlock->block[i][gridBlock->numCols_ghost - 2];
-		gridBlock->block[i][gridBlock->numCols_ghost - 1] = gridBlock->block[i][1];
-	}
 
+		int i, j, t, x, y;
 
-	//Update to current grid to the next grid
-	for (i = 1; i < gridBlock->numRows_ghost - 1; i++){
+		MPI_Status stat;
 
-		for (j = 1; j < gridBlock->numCols_ghost - 1; j++){
+		// send first row of the block to the upper neighbour
+		MPI_Send(&gridBlock->block[1][0], 1, row_block_type, gridBlock->upper_neighbour, 0, MPI_COMM_WORLD);
 
-			int alive_neighbours = 0;
+		// send last row of the block to the lower neighbour
+		MPI_Send(&gridBlock->block[gridBlock->numRows_ghost - 2][0], 1, row_block_type, gridBlock->lower_neighbour, 0, MPI_COMM_WORLD);
 
-			for (x = i - 1; x <= i + 1; x++)
-				for (y = j - 1; y <= j + 1; y++)
-					if ((i != x || j != y) && gridBlock->block[x][y]) alive_neighbours++;
-			
-			if (gridBlock->block[i][j] && alive_neighbours < 2)
-				next_gridBlock[i][j] = DEAD;
+		// receive from below using  buffer the ghost row as receiver
+		MPI_Recv(&gridBlock->block[gridBlock->numRows_ghost - 1][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->lower_neighbour, 0, MPI_COMM_WORLD, &stat);
 
-			if (gridBlock->block[i][j] && (alive_neighbours == 2 || alive_neighbours == 3))
-				next_gridBlock[i][j] = ALIVE;
+		// receive from top using  the ghost row as receiver buffer
+		MPI_Recv(&gridBlock->block[0][0], gridBlock->numCols_ghost, MPI_UNSIGNED, gridBlock->upper_neighbour, 0, MPI_COMM_WORLD, &stat);
 
-			if (alive_neighbours > 3)
-				next_gridBlock[i][j] = DEAD;
+		//ghost colums:
+		// 		-copy last column to the fisrt column
+		// 		-copy the fisrt column to the last last column
 
-			if ( !gridBlock->block[i][j] && (alive_neighbours == 3))
-				next_gridBlock[i][j] = ALIVE;
+		for (i = 0; i < gridBlock->numRows_ghost; i++)
+		{
+			gridBlock->block[i][0] = gridBlock->block[i][gridBlock->numCols_ghost - 2];
+			gridBlock->block[i][gridBlock->numCols_ghost - 1] = gridBlock->block[i][1];
 		}
+
+		//Update to current grid to the next grid
+		for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
+		{
+
+			for (j = 1; j < gridBlock->numCols_ghost - 1; j++)
+			{
+
+				int alive_neighbours = 0;
+
+				for (x = i - 1; x <= i + 1; x++)
+					for (y = j - 1; y <= j + 1; y++)
+						if ((i != x || j != y) && gridBlock->block[x][y])
+							alive_neighbours++;
+
+				if (gridBlock->block[i][j] && alive_neighbours < 2)
+					next_gridBlock[i][j] = DEAD;
+
+				if (gridBlock->block[i][j] && (alive_neighbours == 2 || alive_neighbours == 3))
+					next_gridBlock[i][j] = ALIVE;
+
+				if (alive_neighbours > 3)
+					next_gridBlock[i][j] = DEAD;
+
+				if (!gridBlock->block[i][j] && (alive_neighbours == 3))
+					next_gridBlock[i][j] = ALIVE;
+			}
+		}
+
+		for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
+			for (j = 1; j < gridBlock->numCols_ghost - 1; j++)
+				gridBlock->block[i][j] = next_gridBlock[i][j];
 	}
 
+	// call envolve and diaplay the evolution
+	void game_block(struct grid_block * gridBlock, int time, int nRows, int nCols)
+	{
+		int i, j, t;
+		//allocate the next grid used to compute the evolution of the next time step
+		unsigned int **next_gridBlock;
 
+		//TODO: see difference of performance in seding using derived datatype and without
+		// create a derived datatype to send a row
+		MPI_Datatype row_block_type, row_block_without_ghost, block_type;
 
-	for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
-		for (j = 1; j < gridBlock->numCols_ghost - 1; j++)
-			gridBlock->block[i][j] = next_gridBlock[i][j];
-}
+		// for the envolve
+		MPI_Type_contiguous(gridBlock->numCols_ghost, MPI_UNSIGNED, &row_block_type);
 
-// call envolve and diaplay the evolution
-void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
-{
-	int i, j, t;
-	//allocate the next grid used to compute the evolution of the next time step
-	unsigned int **next_gridBlock;
+		// for the display
+		MPI_Type_contiguous(gridBlock->numCols_ghost - 2, MPI_UNSIGNED, &row_block_without_ghost);
 
-	//TODO: see difference of performance in seding using derived datatype and without
-	// create a derived datatype to send a row
-	MPI_Datatype row_block_type, row_block_without_ghost, block_type;
+		//TODO: da finire type vector
+		//to send block
+		MPI_Type_vector(gridBlock->numRows_ghost - 2, gridBlock->numCols_ghost - 2, gridBlock->numCols_ghost, MPI_UNSIGNED, &block_type);
 
-	// for the envolve
-	MPI_Type_contiguous(gridBlock->numCols_ghost, MPI_UNSIGNED, &row_block_type);
+		//allocate datatypes
+		MPI_Type_commit(&row_block_type);
+		MPI_Type_commit(&row_block_without_ghost);
+		MPI_Type_commit(&block_type);
 
-	// for the display
-	MPI_Type_contiguous(gridBlock->numCols_ghost - 2, MPI_UNSIGNED, &row_block_without_ghost);
-
-	//TODO: da finire type vector
-	//to send block
-	MPI_Type_vector( gridBlock->numRows_ghost - 2 , gridBlock->numCols_ghost - 2 , gridBlock->numCols_ghost, MPI_UNSIGNED , &block_type);
-
-	//allocate datatypes
-	MPI_Type_commit(&row_block_type);
-	MPI_Type_commit(&row_block_without_ghost);
-	MPI_Type_commit(&block_type);
-	
-
-	//Random Initialization of the grid assigned to each node
-	init_grid_block(gridBlock);
-	allocate_empty_grid(&next_gridBlock, gridBlock->numRows_ghost, gridBlock->numCols_ghost);
-
-	for (t = 0; t < time; t++)
-	{	
-		display(gridBlock, nRows, nCols, block_type);
-		evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
+		//Random Initialization of the grid assigned to each node
+		init_grid_block(gridBlock);
 		
+		next_gridBlock = allocate_empty_grid(gridBlock->numRows_ghost, gridBlock->numCols_ghost);
+
+		for (t = 0; t < time; t++)
+		{
+			display(gridBlock, nRows, nCols, block_type);
+			evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
+		}
+
+		// free the derived datatype
+		MPI_Type_free(&row_block_type);
+		MPI_Type_free(&row_block_without_ghost);
+		MPI_Type_free(&block_type);
+
+		free_grid(gridBlock->block);
+		free_grid(next_gridBlock);
 	}
 
-	// free the derived datatype
-	MPI_Type_free(&row_block_type);
-	MPI_Type_free(&row_block_without_ghost);
-	MPI_Type_free(&block_type);
-}
-
-// obtain the upper neighbour
-int get_upper_neighbour(int size, int rank)
-{
-
-	return (rank == 0) ? size - 1 : rank - 1;
-}
-
-int get_lower_neighbour(int size, int rank)
-{
-
-	return (rank == size - 1) ? 0 : rank + 1;
-}
-
-int main(int argc, char **argv)
-{
-
-	int rank, size, err;
-
-	err = MPI_Init(&argc, &argv);
-
-	if (err != 0)
+	// obtain the upper neighbour
+	int get_upper_neighbour(int size, int rank)
 	{
 
-		printf("\nError in MPI initialization!\n");
-		MPI_Abort(MPI_COMM_WORLD, err);
+		return (rank == 0) ? size - 1 : rank - 1;
 	}
 
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	int get_lower_neighbour(int size, int rank)
+	{
 
-	int nCols = 0, nRows = 0, time = 0;
-	if (argc > 1)
-		nCols = atoi(argv[1]);
-	if (argc > 2)
-		nRows = atoi(argv[2]);
-	if (argc > 3)
-		time = atoi(argv[3]);
-	if (nCols <= 0)
-		nCols = 30;
-	if (nRows <= 0)
-		nRows = 30;
-	if (time <= 0)
-		time = 100;
+		return (rank == size - 1) ? 0 : rank + 1;
+	}
 
-	//send number of columns and number of rows to each process
+	int main(int argc, char **argv)
+	{
 
-	// send rows
-	MPI_Bcast(&nRows, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
-	MPI_Bcast(&nCols, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
-	MPI_Bcast(&time, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
+		int rank, size, err;
 
-	//Each process compute the size of its chunks
-	int n_rows_local = nRows / size;
-	//if the division has remains are added to the last process;
-	if (rank == size - 1)
-		n_rows_local += nRows % size;
+		err = MPI_Init(&argc, &argv);
 
-	// ghost colums are which that communicate with neighbours. Are a sort of
-	// recever buffer
-	int n_rows_local_with_ghost = n_rows_local + 2;
-	int n_cols_with_ghost = nCols + 2;
+		if (err != 0)
+		{
 
+			printf("\nError in MPI initialization!\n");
+			MPI_Abort(MPI_COMM_WORLD, err);
+		}
 
-	//printf("\nRank: %d - Rows local: %d - Cols: %d\n", rank, n_rows_local, nCols);
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	int upper_neighbour = get_upper_neighbour(size, rank);
-	int lower_neighbour = get_lower_neighbour(size, rank);
+		int nCols = 0, nRows = 0, time = 0;
+		if (argc > 1)
+			nCols = atoi(argv[1]);
+		if (argc > 2)
+			nRows = atoi(argv[2]);
+		if (argc > 3)
+			time = atoi(argv[3]);
+		if (nCols <= 0)
+			nCols = 30;
+		if (nRows <= 0)
+			nRows = 30;
+		if (time <= 0)
+			time = 100;
 
-	struct grid_block blockGrid;
+		//send number of columns and number of rows to each process
+		MPI_Bcast(&nRows, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
+		MPI_Bcast(&nCols, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
+		MPI_Bcast(&time, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
 
-	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size);
+		//Each process compute the size of its chunks
+		int n_rows_local = nRows / size;
+		//if the division has remains are added to the last process;
+		if (rank == size - 1)
+			n_rows_local += nRows % size;
 
-	game_block(&blockGrid, time, nRows, nCols);
+		// ghost colums are which that communicate with neighbours. Are a sort of
+		// recever buffer
+		int n_rows_local_with_ghost = n_rows_local + 2;
+		int n_cols_with_ghost = nCols + 2;
 
-	//MPI_Barrier(MPI_COMM_WORLD);
-	//-----------------------------------------------------------------------------------------------
+		//printf("\nRank: %d - Rows local: %d - Cols: %d\n", rank, n_rows_local, nCols);
 
-	err = MPI_Finalize();
+		int upper_neighbour = get_upper_neighbour(size, rank);
+		int lower_neighbour = get_lower_neighbour(size, rank);
 
-	return EXIT_SUCCESS;
-}
+		struct grid_block blockGrid;
+
+		init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size);
+
+		game_block(&blockGrid, time, nRows, nCols);
+
+		//MPI_Barrier(MPI_COMM_WORLD);
+		//-----------------------------------------------------------------------------------------------
+
+		err = MPI_Finalize();
+
+		return EXIT_SUCCESS;
+	}

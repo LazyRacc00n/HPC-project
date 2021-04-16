@@ -74,3 +74,5 @@ dkms.conf
 #file output --> too large for github
 glife.txt
 .nfs000000003d0da24800000475
+.nfs000000003b0a1c1500000498
+.gitignore

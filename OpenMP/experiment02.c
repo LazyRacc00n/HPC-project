@@ -35,13 +35,14 @@ void evolve(void *u, int w, int h) {
 						// skip the current cell [y, x]
 				    	if ((y != y1 || x != x1) && univ[(y1 + h) % h][(x1 + w) % w]) n++;
 
-		    new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
+		    	new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
 		
 	    }
 	
 		// update the board
-		#pragma omp for  schedule(static)
-		for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+		//#pragma omp for  schedule(static)
+		//for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+		univ& = **new;
 	}
 }
  
@@ -83,7 +84,7 @@ void game(int w, int h, int t, int threads) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Exp01-OMP-%d-%d-%d.txt", w, h, t);
+	sprintf(fileName, "Exp02-OMP-%d-%d-%d.txt", w, h, t);
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
