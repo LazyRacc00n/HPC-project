@@ -271,7 +271,6 @@ int main(int argc, char **argv)
 
 	if (err != 0)
 	{
-
 		printf("\nError in MPI initialization!\n");
 		MPI_Abort(MPI_COMM_WORLD, err);
 	}
@@ -320,7 +319,6 @@ int main(int argc, char **argv)
 	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size);
 
 	game(&blockGrid, time, nRows, nCols);
-
 
 	//-----------------------------------------------------------------------------------------------
 

@@ -227,10 +227,10 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	MPI_Datatype row_block_type, row_block_without_ghost;
 
 	// for the envolve
-	MPI_Type_contiguous(gridBlock->numCols_ghost, MPI_INT, &row_block_type);
+	MPI_Type_contiguous(gridBlock->numCols_ghost, MPI_UNSIGNED, &row_block_type);
 
 	// for the display
-	MPI_Type_contiguous(nCols, MPI_INT, &row_block_without_ghost);
+	MPI_Type_contiguous(nCols, MPI_UNSIGNED, &row_block_without_ghost);
 	MPI_Type_commit(&row_block_type);
 	MPI_Type_commit(&row_block_without_ghost);
 
@@ -307,6 +307,7 @@ int main(int argc, char **argv)
 	//send number of columns and number of rows to each process
 	MPI_Bcast(&nRows, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
 	MPI_Bcast(&nCols, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
+	
 	MPI_Bcast(&time, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
 
 	//Each process compute the size of its chunks
