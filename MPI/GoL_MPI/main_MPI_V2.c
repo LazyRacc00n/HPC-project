@@ -210,29 +210,23 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 }
 
 // call envolve and diaplay the evolution
-void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
+void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 {
 	int i, j, t;
 	//allocate the next grid used to compute the evolution of the next time step
 	unsigned int **next_gridBlock;
 
-	//TODO: see difference of performance in seding using derived datatype and without
 	// create a derived datatype to send a row
 	MPI_Datatype row_block_type, row_block_without_ghost, block_type;
 
 	// for the envolve
 	MPI_Type_contiguous(gridBlock->numCols_ghost, MPI_UNSIGNED, &row_block_type);
 
-	// for the display
-	MPI_Type_contiguous(gridBlock->numCols_ghost - 2, MPI_UNSIGNED, &row_block_without_ghost);
-
-	//TODO: da finire type vector
-	//to send block
+	//to send a block, thanks to use of MPI derived datatype
 	MPI_Type_vector(gridBlock->numRows_ghost - 2, gridBlock->numCols_ghost - 2, gridBlock->numCols_ghost, MPI_UNSIGNED, &block_type);
 
 	//allocate datatypes
 	MPI_Type_commit(&row_block_type);
-	MPI_Type_commit(&row_block_without_ghost);
 	MPI_Type_commit(&block_type);
 
 	//Random Initialization of the grid assigned to each node
@@ -249,7 +243,6 @@ void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
 
 	// free the derived datatype
 	MPI_Type_free(&row_block_type);
-	MPI_Type_free(&row_block_without_ghost);
 	MPI_Type_free(&block_type);
 
 	free_grid(gridBlock->block);
@@ -299,6 +292,7 @@ int main(int argc, char **argv)
 		nRows = 30;
 	if (time <= 0)
 		time = 100;
+	
 
 	//send number of columns and number of rows to each process
 	MPI_Bcast(&nRows, 1, MPI_UNSIGNED, MPI_root, MPI_COMM_WORLD);
@@ -325,9 +319,9 @@ int main(int argc, char **argv)
 
 	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size);
 
-	game_block(&blockGrid, time, nRows, nCols);
+	game(&blockGrid, time, nRows, nCols);
 
-	//MPI_Barrier(MPI_COMM_WORLD);
+
 	//-----------------------------------------------------------------------------------------------
 
 	err = MPI_Finalize();

@@ -216,7 +216,7 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 }
 
 // call envolve and diaplay the evolution
-void game_block(struct grid_block *gridBlock, int time, int nRows, int nCols)
+void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 {
 	int i, j, t;
 	//allocate the next grid used to compute the evolution of the next time step
@@ -303,13 +303,8 @@ int main(int argc, char **argv)
 	
 	if (time <= 0)
 		time = 100;
-	
-	//TODO: VALUTARE SE STE BARRIER  SERVONO A QUALCOSA
-	MPI_Barrier(MPI_COMM_WORLD);
 
 	//send number of columns and number of rows to each process
-
-	// send rows
 	MPI_Bcast(&nRows, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
 	MPI_Bcast(&nCols, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
 	MPI_Bcast(&time, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
@@ -320,7 +315,7 @@ int main(int argc, char **argv)
 	if (rank == size - 1)
 		n_rows_local += nRows % size;
 
-	// ghost colums are which that communicate with neighbours. Are a sort of
+	// ghost colums are which that communicate with neighbours.
 	// recever buffer
 	int n_rows_local_with_ghost = n_rows_local + 2;
 	int n_cols_with_ghost = nCols + 2;
@@ -332,10 +327,9 @@ int main(int argc, char **argv)
 
 	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size);
 
-	
-	game_block(&blockGrid, time, nRows, nCols);
+	game(&blockGrid, time, nRows, nCols);
 
-	MPI_Barrier(MPI_COMM_WORLD);
+
 	//-----------------------------------------------------------------------------------------------
 
 	err = MPI_Finalize();
