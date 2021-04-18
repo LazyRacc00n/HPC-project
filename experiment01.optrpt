@@ -1,0 +1,420 @@
+Intel(R) Advisor can now assist with vectorization and show optimization
+  report messages with your source code.
+See "https://software.intel.com/en-us/intel-advisor-xe" for details.
+
+
+    Report from: Interprocedural optimizations [ipo]
+
+INLINING OPTION VALUES:
+  -inline-factor: 100
+  -inline-min-size: 30
+  -inline-max-size: 230
+  -inline-max-total-size: 2000
+  -inline-max-per-routine: 10000
+  -inline-max-per-compile: 500000
+
+
+Begin optimization report for: main(int, char **)
+
+    Report from: Interprocedural optimizations [ipo]
+
+INLINE REPORT: (main(int, char **)) [1] OpenMP/experiment01.c(124,27)
+  -> INLINE: (128,17) atoi(const char *)
+     {{ Inlining of routines from system headers is omitted. Use -qopt-report=3 to view full report. }}
+  -> INLINE: (131,17) atoi(const char *)
+     {{ Inlining of routines from system headers is omitted. Use -qopt-report=3 to view full report. }}
+  -> INLINE: (134,17) atoi(const char *)
+     {{ Inlining of routines from system headers is omitted. Use -qopt-report=3 to view full report. }}
+  -> INLINE: (137,26) atoi(const char *)
+     {{ Inlining of routines from system headers is omitted. Use -qopt-report=3 to view full report. }}
+  -> (148,2) game(int, int, int, int)
+
+
+    Report from: Code generation optimizations [cg]
+
+OpenMP/experiment01.c(124,27):remark #34051: REGISTER ALLOCATION : [main] OpenMP/experiment01.c:124
+
+    Hardware registers
+        Reserved     :    2[ rsp rip]
+        Available    :   39[ rax rdx rcx rbx rbp rsi rdi r8-r15 mm0-mm7 zmm0-zmm15]
+        Callee-save  :    6[ rbx rbp r12-r15]
+        Assigned     :   11[ rax rdx rcx rbx rsi rdi r8 r12-r15]
+        
+    Routine temporaries
+        Total         :      54
+            Global    :      23
+            Local     :      31
+        Regenerable   :      14
+        Spilled       :       6
+        
+    Routine stack
+        Variables     :       4 bytes*
+            Reads     :       2 [0.00e+00 ~ 0.0%]
+            Writes    :       2 [0.00e+00 ~ 0.0%]
+        Spills        :       8 bytes*
+            Reads     :       4 [2.00e+00 ~ 4.3%]
+            Writes    :       1 [0.00e+00 ~ 0.0%]
+    
+    Notes
+    
+        *Non-overlapping variables and spills may share stack space,
+         so the total stack size might be less than this.
+    
+
+===========================================================================
+
+Begin optimization report for: game(int, int, int, int)
+
+    Report from: Interprocedural optimizations [ipo]
+
+INLINE REPORT: (game(int, int, int, int)) [2] OpenMP/experiment01.c(81,45)
+  -> INLINE: (90,16) printbig(void *, int, int, int)
+  -> INLINE: (93,18) show(void *, int, int)
+  -> INLINE: (99,3) evolve(void *, int, int)
+  -> INLINE: (112,16) printbig(void *, int, int, int)
+
+
+    Report from: OpenMP optimizations [openmp]
+
+OpenMP/experiment01.c(58:2-58:2):OMP:game:  OpenMP DEFINED LOOP WAS PARALLELIZED
+OpenMP/experiment01.c(74:2-74:2):OMP:game:  OpenMP DEFINED LOOP WAS PARALLELIZED
+
+    Report from: Loop nest, Vector & Auto-parallelization optimizations [loop, vec, par]
+
+
+LOOP BEGIN at OpenMP/experiment01.c(88,2)
+   remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+
+   LOOP BEGIN at OpenMP/experiment01.c(88,26)
+      remark #15527: loop was not vectorized: function call to rand(void) cannot be vectorized   [ OpenMP/experiment01.c(88,63) ]
+   LOOP END
+LOOP END
+
+LOOP BEGIN at OpenMP/experiment01.c(36,2) inlined into OpenMP/experiment01.c(90,16)
+   remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+
+   LOOP BEGIN at OpenMP/experiment01.c(37,3) inlined into OpenMP/experiment01.c(90,16)
+      remark #15527: loop was not vectorized: function call to fprintf(FILE *__restrict__, const char *__restrict__, ...) cannot be vectorized   [ OpenMP/experiment01.c(37,27) ]
+   LOOP END
+LOOP END
+
+LOOP BEGIN at OpenMP/experiment01.c(17,2) inlined into OpenMP/experiment01.c(93,18)
+   remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+
+   LOOP BEGIN at OpenMP/experiment01.c(18,3) inlined into OpenMP/experiment01.c(93,18)
+      remark #15344: loop was not vectorized: vector dependence prevents vectorization. First dependence is shown below. Use level 5 report for details
+   LOOP END
+LOOP END
+
+LOOP BEGIN at OpenMP/experiment01.c(36,2) inlined into OpenMP/experiment01.c(112,16)
+   remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+
+   LOOP BEGIN at OpenMP/experiment01.c(37,3) inlined into OpenMP/experiment01.c(112,16)
+      remark #15527: loop was not vectorized: function call to fprintf(FILE *__restrict__, const char *__restrict__, ...) cannot be vectorized   [ OpenMP/experiment01.c(37,27) ]
+   LOOP END
+LOOP END
+
+LOOP BEGIN at OpenMP/experiment01.c(59,2) inlined into OpenMP/experiment01.c(99,3)
+   remark #15542: loop was not vectorized: inner loop was already vectorized
+
+   LOOP BEGIN at OpenMP/experiment01.c(60,9) inlined into OpenMP/experiment01.c(99,3)
+   <Peeled loop for vectorization>
+   LOOP END
+
+   LOOP BEGIN at OpenMP/experiment01.c(60,9) inlined into OpenMP/experiment01.c(99,3)
+      remark #15300: LOOP WAS VECTORIZED
+
+      LOOP BEGIN at OpenMP/experiment01.c(64,7) inlined into OpenMP/experiment01.c(99,3)
+         remark #25436: completely unrolled by 3   (pre-vector) 
+
+         LOOP BEGIN at OpenMP/experiment01.c(65,8) inlined into OpenMP/experiment01.c(99,3)
+            remark #25436: completely unrolled by 3   (pre-vector) 
+         LOOP END
+
+         LOOP BEGIN at OpenMP/experiment01.c(65,8) inlined into OpenMP/experiment01.c(99,3)
+         LOOP END
+
+         LOOP BEGIN at OpenMP/experiment01.c(65,8) inlined into OpenMP/experiment01.c(99,3)
+         LOOP END
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at OpenMP/experiment01.c(60,9) inlined into OpenMP/experiment01.c(99,3)
+   <Remainder loop for vectorization>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at OpenMP/experiment01.c(76,2) inlined into OpenMP/experiment01.c(99,3)
+   remark #15542: loop was not vectorized: inner loop was already vectorized
+
+   LOOP BEGIN at OpenMP/experiment01.c(76,27) inlined into OpenMP/experiment01.c(99,3)
+      remark #25399: memcopy generated
+      remark #15542: loop was not vectorized: inner loop was already vectorized
+
+      LOOP BEGIN at OpenMP/experiment01.c(76,27) inlined into OpenMP/experiment01.c(99,3)
+      <Peeled loop for vectorization>
+      LOOP END
+
+      LOOP BEGIN at OpenMP/experiment01.c(76,27) inlined into OpenMP/experiment01.c(99,3)
+         remark #15300: LOOP WAS VECTORIZED
+      LOOP END
+
+      LOOP BEGIN at OpenMP/experiment01.c(76,27) inlined into OpenMP/experiment01.c(99,3)
+      <Alternate Alignment Vectorized Loop>
+      LOOP END
+
+      LOOP BEGIN at OpenMP/experiment01.c(76,27) inlined into OpenMP/experiment01.c(99,3)
+      <Remainder loop for vectorization>
+      LOOP END
+   LOOP END
+LOOP END
+
+
+Non-optimizable loops:
+
+
+LOOP BEGIN at OpenMP/experiment01.c(92,2)
+   remark #15543: loop was not vectorized: loop with function call not considered an optimization candidate.
+LOOP END
+
+    Report from: Code generation optimizations [cg]
+
+OpenMP/experiment01.c(76,51):remark #34026: call to memcpy implemented as a call to optimized library version
+OpenMP/experiment01.c(81,45):remark #34051: REGISTER ALLOCATION : [game] OpenMP/experiment01.c:81
+
+    Hardware registers
+        Reserved     :    2[ rsp rip]
+        Available    :   39[ rax rdx rcx rbx rbp rsi rdi r8-r15 mm0-mm7 zmm0-zmm15]
+        Callee-save  :    6[ rbx rbp r12-r15]
+        Assigned     :   30[ rax rdx rcx rbx rsi rdi r8-r15 zmm0-zmm15]
+        
+    Routine temporaries
+        Total         :     801
+            Global    :     218
+            Local     :     583
+        Regenerable   :     138
+        Spilled       :      59
+        
+    Routine stack
+        Variables     :     124 bytes*
+            Reads     :      17 [2.94e+01 ~ 0.0%]
+            Writes    :      17 [2.41e+02 ~ 0.3%]
+        Spills        :     528 bytes*
+            Reads     :     171 [4.22e+03 ~ 6.1%]
+            Writes    :     111 [2.46e+03 ~ 3.5%]
+    
+    Notes
+    
+        *Non-overlapping variables and spills may share stack space,
+         so the total stack size might be less than this.
+    
+
+===========================================================================
+
+Begin optimization report for: show(void *, int, int)
+
+    Report from: Interprocedural optimizations [ipo]
+
+INLINE REPORT: (show(void *, int, int)) [4] OpenMP/experiment01.c(13,34)
+
+
+    Report from: Loop nest, Vector & Auto-parallelization optimizations [loop, vec, par]
+
+
+LOOP BEGIN at OpenMP/experiment01.c(17,2)
+   remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+
+   LOOP BEGIN at OpenMP/experiment01.c(18,3)
+      remark #15344: loop was not vectorized: vector dependence prevents vectorization. First dependence is shown below. Use level 5 report for details
+      remark #15346: vector dependence: assumed ANTI dependence between u[y][x] (18:34) and call:printf(const char *__restrict__, ...) (18:27)
+   LOOP END
+LOOP END
+
+    Report from: Code generation optimizations [cg]
+
+OpenMP/experiment01.c(13,34):remark #34051: REGISTER ALLOCATION : [show] OpenMP/experiment01.c:13
+
+    Hardware registers
+        Reserved     :    2[ rsp rip]
+        Available    :   39[ rax rdx rcx rbx rbp rsi rdi r8-r15 mm0-mm7 zmm0-zmm15]
+        Callee-save  :    6[ rbx rbp r12-r15]
+        Assigned     :   10[ rax rdx rbx rbp rsi rdi r12-r15]
+        
+    Routine temporaries
+        Total         :      33
+            Global    :      17
+            Local     :      16
+        Regenerable   :      11
+        Spilled       :       8
+        
+    Routine stack
+        Variables     :       0 bytes*
+            Reads     :       0 [0.00e+00 ~ 0.0%]
+            Writes    :       0 [0.00e+00 ~ 0.0%]
+        Spills        :      40 bytes*
+            Reads     :       5 [1.17e+01 ~ 3.5%]
+            Writes    :       5 [1.17e+01 ~ 3.5%]
+    
+    Notes
+    
+        *Non-overlapping variables and spills may share stack space,
+         so the total stack size might be less than this.
+    
+
+===========================================================================
+
+Begin optimization report for: printbig(void *, int, int, int)
+
+    Report from: Interprocedural optimizations [ipo]
+
+INLINE REPORT: (printbig(void *, int, int, int)) [5] OpenMP/experiment01.c(27,45)
+
+
+    Report from: Loop nest, Vector & Auto-parallelization optimizations [loop, vec, par]
+
+
+LOOP BEGIN at OpenMP/experiment01.c(36,2)
+   remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+
+   LOOP BEGIN at OpenMP/experiment01.c(37,3)
+      remark #15344: loop was not vectorized: vector dependence prevents vectorization. First dependence is shown below. Use level 5 report for details
+      remark #15346: vector dependence: assumed ANTI dependence between u[y][x] (37:44) and call:fprintf(FILE *__restrict__, const char *__restrict__, ...) (37:27)
+   LOOP END
+LOOP END
+
+    Report from: Code generation optimizations [cg]
+
+OpenMP/experiment01.c(27,45):remark #34051: REGISTER ALLOCATION : [printbig] OpenMP/experiment01.c:27
+
+    Hardware registers
+        Reserved     :    2[ rsp rip]
+        Available    :   39[ rax rdx rcx rbx rbp rsi rdi r8-r15 mm0-mm7 zmm0-zmm15]
+        Callee-save  :    6[ rbx rbp r12-r15]
+        Assigned     :   11[ rax rdx rcx rbx rbp rsi rdi r12-r15]
+        
+    Routine temporaries
+        Total         :      44
+            Global    :      19
+            Local     :      25
+        Regenerable   :      14
+        Spilled       :       9
+        
+    Routine stack
+        Variables     :       0 bytes*
+            Reads     :       0 [0.00e+00 ~ 0.0%]
+            Writes    :       0 [0.00e+00 ~ 0.0%]
+        Spills        :      40 bytes*
+            Reads     :       5 [1.53e+01 ~ 4.4%]
+            Writes    :       5 [1.53e+01 ~ 4.4%]
+    
+    Notes
+    
+        *Non-overlapping variables and spills may share stack space,
+         so the total stack size might be less than this.
+    
+
+===========================================================================
+
+Begin optimization report for: evolve(void *, int, int)
+
+    Report from: Interprocedural optimizations [ipo]
+
+INLINE REPORT: (evolve(void *, int, int)) [6] OpenMP/experiment01.c(53,36)
+
+
+    Report from: OpenMP optimizations [openmp]
+
+OpenMP/experiment01.c(58:2-58:2):OMP:evolve:  OpenMP DEFINED LOOP WAS PARALLELIZED
+OpenMP/experiment01.c(74:2-74:2):OMP:evolve:  OpenMP DEFINED LOOP WAS PARALLELIZED
+
+    Report from: Loop nest, Vector & Auto-parallelization optimizations [loop, vec, par]
+
+
+LOOP BEGIN at OpenMP/experiment01.c(59,2)
+   remark #15542: loop was not vectorized: inner loop was already vectorized
+
+   LOOP BEGIN at OpenMP/experiment01.c(60,9)
+   <Peeled loop for vectorization>
+   LOOP END
+
+   LOOP BEGIN at OpenMP/experiment01.c(60,9)
+      remark #15300: LOOP WAS VECTORIZED
+
+      LOOP BEGIN at OpenMP/experiment01.c(64,7)
+         remark #25436: completely unrolled by 3   (pre-vector) 
+
+         LOOP BEGIN at OpenMP/experiment01.c(65,8)
+            remark #25436: completely unrolled by 3   (pre-vector) 
+         LOOP END
+
+         LOOP BEGIN at OpenMP/experiment01.c(65,8)
+         LOOP END
+
+         LOOP BEGIN at OpenMP/experiment01.c(65,8)
+         LOOP END
+      LOOP END
+   LOOP END
+
+   LOOP BEGIN at OpenMP/experiment01.c(60,9)
+   <Remainder loop for vectorization>
+   LOOP END
+LOOP END
+
+LOOP BEGIN at OpenMP/experiment01.c(76,2)
+   remark #15542: loop was not vectorized: inner loop was already vectorized
+
+   LOOP BEGIN at OpenMP/experiment01.c(76,27)
+      remark #25399: memcopy generated
+      remark #15542: loop was not vectorized: inner loop was already vectorized
+
+      LOOP BEGIN at OpenMP/experiment01.c(76,27)
+      <Peeled loop for vectorization>
+      LOOP END
+
+      LOOP BEGIN at OpenMP/experiment01.c(76,27)
+         remark #15300: LOOP WAS VECTORIZED
+      LOOP END
+
+      LOOP BEGIN at OpenMP/experiment01.c(76,27)
+      <Alternate Alignment Vectorized Loop>
+      LOOP END
+
+      LOOP BEGIN at OpenMP/experiment01.c(76,27)
+      <Remainder loop for vectorization>
+      LOOP END
+   LOOP END
+LOOP END
+
+    Report from: Code generation optimizations [cg]
+
+OpenMP/experiment01.c(76,51):remark #34026: call to memcpy implemented as a call to optimized library version
+OpenMP/experiment01.c(53,36):remark #34051: REGISTER ALLOCATION : [evolve] OpenMP/experiment01.c:53
+
+    Hardware registers
+        Reserved     :    2[ rsp rip]
+        Available    :   39[ rax rdx rcx rbx rbp rsi rdi r8-r15 mm0-mm7 zmm0-zmm15]
+        Callee-save  :    6[ rbx rbp r12-r15]
+        Assigned     :   30[ rax rdx rcx rbx rsi rdi r8-r15 zmm0-zmm15]
+        
+    Routine temporaries
+        Total         :     673
+            Global    :     164
+            Local     :     509
+        Regenerable   :      90
+        Spilled       :      43
+        
+    Routine stack
+        Variables     :      92 bytes*
+            Reads     :       9 [1.00e+00 ~ 0.0%]
+            Writes    :      17 [4.90e+01 ~ 0.4%]
+        Spills        :     400 bytes*
+            Reads     :     109 [8.23e+02 ~ 6.0%]
+            Writes    :      68 [4.86e+02 ~ 3.5%]
+    
+    Notes
+    
+        *Non-overlapping variables and spills may share stack space,
+         so the total stack size might be less than this.
+    
+
+===========================================================================

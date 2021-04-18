@@ -1,0 +1,88 @@
+COMPILATION:
+
+    - mpiicc file.c -o nomeFile
+
+EXECUTION:
+
+    -mpiexec -hostfile host_list.txt -perhost 1 -np 11 /bin/hostname
+
+
+
+
+------------------------------------- MPI FUNCTIONS AND VARIABLES -----------------------------------------------
+BASICA FUNNC:
+
+    - int MPI_Init(int *argc, char ***argv) --> Must be first MPI call: initializes the message passing routines --> before no MPI calls are allowed
+
+    - int MPI_Finalize() --> after no MPI calls are allowed
+
+    - MPI_COMM_WORLD  --> communicator for all processes
+
+    - MPI_Comm_size(MPI_Comm comm, int *size) --> number of processes are associated with a communicator
+
+    - MPI_Comm_rank(MPI_Comm comm, int *rank) --> ID of a processor in a communicator comm
+
+    - int MPI_Abort( MPI_Comm comm, int errorcode ) --> Terminates all MPI processes associated with the communicator comm
+
+COMMUNICATION:
+
+    - communicator must be the same for sender and receiver, tags must match, buffer must be large enough
+
+    - SEND (blocking)--> int MPI_Send(void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm);
+
+    - RECEIVE (blocking) --> int MPI_Recv (void *buf, int count, MPI_Datatype type, int source, int tag, MPI_Comm comm, MPI_Status *status);
+
+    - MPI_Status: has fields: int MPI_SOURCE; int MPI_TAG; int MPI_ERROR;
+
+    - MPI_Get_count( &status, datatype, &count ); --> used to know how many elements of type datatype have actually been received
+
+    - SEND (NON-blocking) --> int MPI_Isend(void *buf, int count, MPI_Datatype type, int dest, int tag, MPI_Comm comm, MPI_Request *req);
+    
+    - RECEIVE (NON-blocking) --> int MPI_Irecv (void *buf, int count, MPI_Datatype type, int source, int tag, MPI_Comm comm, MPI_Request *req);
+
+    Wait for Complection:
+        int MPI_Wait(MPI_Request *req, MPI_Status *status);
+        Int MPI_Waitall (count,&array_of_requests,&array_of_statuses) ;
+
+MPI PARALLEL COMPUTING - COLLECTIVE COMMUNICATION:
+
+MPI_Barrier(comm):
+    – Synchronization operation. Creates a barrier synchronization in a group. Each rocess, when
+    reaching the MPI_Barrier call, blocks until all processes in the group reach the same MPI_Barrier
+    call. Then all processes can continue.
+
+MPI_Bcast(&buffer, count, datatype, root, comm) :
+    – Broadcasts (sends) a message from the process with rank "root" to all other processes in the group.
+
+MPI_Scatter(&sendbuf, sendcnt, sendtype, &recvbuf, recvcnt, recvtype, root, comm):
+    – Distributes distinct messages from a single source process to each process in the group
+
+MPI_Gather(&sendbuf, sendcnt, sendtype, &recvbuf, recvcount, recvtype, root, comm):
+    – Gathers distinct messages from each process in the group to a single destination process. This
+    routine is the reverse operation of MPI_Scatter
+
+MPI_Allgather(&sendbuf, sendcount, sendtype, &recvbuf, recvcount, recvtype, comm)
+    – Concatenation of data to all processes in a group. Each process in the group, in effect, performs a
+    one-to-all broadcasting operation within the group
+
+MPI_Reduce(&sendbuf, &recvbuf, count, datatype, op, root, comm):
+    – Applies a reduction operation on all processes in the group and places the result in one process
+
+MPI_Reduce_scatter(&sendbuf, &recvbuf, recvcount, datatype, op, comm):
+    – Collective computation operation + data movement. First does an element-wise reduction on a
+    vector across all processes in the group. Next, the result vector is split into disjoint segments and
+    distributed across the processes. This is equivalent to an MPI_Reduce followed by an MPI_Scatter
+    operation.
+
+MPI_Scan(&sendbuf, &recvbuf, count, datatype, op, comm)
+    – Performs a scan with respect to a reduction operation across a process group.
+
+MPI_Alltoall(&sendbuf, sendcount, sendtype, &recvbuf, recvcnt, recvtype, comm)
+    – Data movement operation. Each process in a group performs
+
+
+
+
+
+
+-----------------------------------------------------------------------------------------------------------------

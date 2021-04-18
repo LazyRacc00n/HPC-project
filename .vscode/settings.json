@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.html": "html",
+        "*.data": "csv",
+        "*.ipynb": "ipython",
+        "gameoflife_mpi.h": "c"
+    }
+}

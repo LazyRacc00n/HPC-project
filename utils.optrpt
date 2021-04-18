@@ -1,0 +1,34 @@
+Intel(R) Advisor can now assist with vectorization and show optimization
+  report messages with your source code.
+See "https://software.intel.com/en-us/intel-advisor-xe" for details.
+
+
+Begin optimization report for: printbig(void *, int, int, int)
+
+    Report from: Vector optimizations [vec]
+
+
+LOOP BEGIN at utils.c(21,2)
+   remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+
+   LOOP BEGIN at utils.c(22,3)
+      remark #15344: loop was not vectorized: vector dependence prevents vectorization. First dependence is shown below. Use level 5 report for details
+      remark #15346: vector dependence: assumed ANTI dependence between u[y][x] (22:44) and call:fprintf(FILE *__restrict__, const char *__restrict__, ...) (22:27)
+   LOOP END
+LOOP END
+===========================================================================
+
+Begin optimization report for: show(void *, int, int)
+
+    Report from: Vector optimizations [vec]
+
+
+LOOP BEGIN at utils.c(35,2)
+   remark #15541: outer loop was not auto-vectorized: consider using SIMD directive
+
+   LOOP BEGIN at utils.c(36,3)
+      remark #15344: loop was not vectorized: vector dependence prevents vectorization. First dependence is shown below. Use level 5 report for details
+      remark #15346: vector dependence: assumed ANTI dependence between u[y][x] (36:34) and call:printf(const char *__restrict__, ...) (36:27)
+   LOOP END
+LOOP END
+===========================================================================

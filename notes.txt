@@ -1,0 +1,84 @@
+
+Se non funziona la sincronanizzazione con la cartella di git (Lo abbiamo già fatto entrambi, non dovrebbe servire più):
+
+cd c:\ABC
+git init .
+git config --global user.name LazyRacc00n
+git config --global user.email jacopo.dapueto@gmail.com
+git add .
+
+git status
+# edit .gitignore to ignore folder you don't want
+
+git commit -m "first commit"
+git remote add origin https://github.com/LazyRacc00n/HPC-project
+git push -u origin main
+
+------------------------------------------------------------------------------
+
+Per pushare: 
+
+Se non rileva i cambiamenti automaticamente (a volte capita), prima di fare push/pull fare nel terminale: git fetch
+oppure andare nel menu di git: 
+    - Pull,Push -> Fetch
+
+Per il Pull:
+
+Non ne capisco il motivo, ma il pull normale non funziona:
+
+    Nel menu di git su vscode:
+        - Pull, Push -> pull from... -> origin -> main
+
+
+--------------------------- HOW TO PRESENT DATA ---------------------------------------------------------------
+
+
+- BEFORE START: CHECK THE HARDWARE OF THE SERVER --> the data to present depend on it.
+    
+    - COSA ABBIAMO SOTTO IL COFANO:
+        
+        Architecture:          x86_64
+        CPU op-mode(s):        32-bit, 64-bit
+        Byte Order:            Little Endian
+        CPU(s):                256
+        On-line CPU(s) list:   0-255
+        Thread(s) per core:    4
+        Core(s) per socket:    64
+        Socket(s):             1
+        NUMA node(s):          1
+        Vendor ID:             GenuineIntel
+        CPU family:            6
+        Model:                 87
+        Model name:            Intel(R) Xeon Phi(TM) CPU 7210 @ 1.30GHz
+        Stepping:              1
+        CPU MHz:               1302.437
+        BogoMIPS:              2599.93
+        L1d cache:             32K
+        L1i cache:             32K
+        L2 cache:              1024K
+        NUMA node0 CPU(s):     0-255
+
+
+CONSIDERING A SINGLE NODE OF A CLUSTER:
+    
+    - sequential time, Ts --> baseline
+    - Speedup --> Ts / Tp
+
+    - How to choose p:
+
+        - p=2, p = max number of cores, p = half number of cores (also half of half)
+
+    - Find how many threads every core can run simultaneosly, let N_T, 
+    so another important value to present is with p= N_T * total_number_of_cores
+
+    - if I have 2 independent cpus with each 6 cores:
+        - P= 2, 12
+        - 24 to analyse performance with hyperthreding ( 2 threads simultaneosly )
+
+MULTIPLE MACHINES:
+
+    - 12 nodes: 64 cores * 12 nodes (OpenMP)
+    - for SMT (Simultaneous multithreading) : 256 * 12 threads ( MPI or, possibly OpenMP + MPI)
+-----------------------------------------------------------------------------------------------------------------
+
+p = 2, 704, 2846
