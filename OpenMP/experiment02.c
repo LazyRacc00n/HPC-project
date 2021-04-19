@@ -9,12 +9,6 @@
 #include "../utils.h"
 
 
-void swap(void*** a, void** b)
-{
-    void* tmp = *a;
-    *a = *b;
-    *b = tmp;
-}
 
 /*
 * a cell is born, if it has exactly three neighbours 

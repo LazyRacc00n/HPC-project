@@ -8,6 +8,23 @@
 
 #include "../utils.h"
 
+
+/*void swap(unsigned int *** a, unsigned int *** b)
+{
+    unsigned ** tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+*/
+
+
+void swap(unsigned int ***old, unsigned int ***new) {
+    unsigned int **temp = *old;
+
+    *old = *new;
+    *new = temp;
+}
+
 // Allocate a matrix so as to have elements contiguos in memory
 unsigned int **allocate_empty_grid(int rows, int cols)
 {
@@ -36,15 +53,15 @@ void free_grid(unsigned int **grid){
 * a cell survives to the next generation, if it does not die of loneliness 
 * or overcrowding 
 */
-void evolve(void *u, void *v, int w, int h) {
-	unsigned (*univ)[w] = u;
-	unsigned new[h][w];
+void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
+	//unsigned (*univ)[w] = u;
+	//unsigned new[h][w];
 
 	#pragma omp parallel shared(new, univ) 
 	{
 		int x,y,x1,y1,n;
         
-		#pragma omp for  schedule(static) collapse(2) 
+		#pragma omp for  schedule(static) 
 		for ( y = 0; y < h; y++) 
         	for ( x = 0; x < w; x++) {
 		    	n = 0;
@@ -61,11 +78,11 @@ void evolve(void *u, void *v, int w, int h) {
 	    }
 	
 		// update the board
-		#pragma omp for schedule(static) collapse(2) 
-		for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
-        
+		//#pragma omp for schedule(static) collapse(2) 
+		//for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 	}
 
+	swap(&univ, &new);
 	
 }
  
@@ -79,33 +96,36 @@ void game(int w, int h, int t, int threads) {
 	double tot_time = 0.;
 
 	//initialization
-	srand(10);
+	//srand(10);
 	for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 	
 	if (x > 1000) printbig(univ, w, h,0);
 	
 	for(z = 0; z < t;z++) {
-		if (x <= 1000 && z%2 == 0) show(univ, w, h);
-		else if(x <= 1000 && z%2 != 0) show(univ_prime, w, h);
+
+		if (x <= 1000) show(univ, w, h);
+		
 		// get starting time at iteration z
 		gettimeofday(&start, NULL);
 		
 		// lets evolve the current generation
-		if(z%2 == 0)
-			evolve(univ, univ_prime,w, h);
-		else
-			evolve(univ_prime, univ,w, h);
+		evolve(univ, univ_prime, w, h);
 
 		// get ending time of iteration z
 		gettimeofday(&end, NULL);
+		
+		// sum up the total time execution
+		tot_time += (double) elapsed_wtime(start, end);
+		
 		
 		if (x > 1000) {
 			
 		    printf("Iteration %d is : %f ms\n", z, (double) elapsed_wtime(start, end));
 		}
 	}
-	if (x > 1000 && z%2 == 0) printbig(univ, w, h,1);
-	else if (x > 1000 && z%2 != 0) printbig(univ_prime, w, h,1);
+	
+	if (x > 1000) printbig(univ, w, h,1);
+
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
