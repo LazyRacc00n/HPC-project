@@ -8,6 +8,14 @@
 
 #include "../utils.h"
 
+
+void swap(void*** a, void** b)
+{
+    void* tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
 /*
 * a cell is born, if it has exactly three neighbours 
 * a cell dies of loneliness, if it has less than two neighbours 
@@ -15,9 +23,10 @@
 * a cell survives to the next generation, if it does not die of loneliness 
 * or overcrowding 
 */
-void evolve(void *u, int w, int h) {
+void evolve(void *u, void *v, int w, int h) {
 	unsigned (*univ)[w] = u;
-	unsigned new[h][w];
+
+	unsigned (*new)[w] = v;
 
 	#pragma omp parallel shared(new, univ) 
 	{
@@ -38,11 +47,13 @@ void evolve(void *u, int w, int h) {
 		    	new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
 		
 	    }
-	
+
 		// update the board
-		#pragma omp for  schedule(static)
-		for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+		//#pragma omp for  schedule(static)
+		//for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+		
 	}
+	
 }
  
  
@@ -50,6 +61,8 @@ void evolve(void *u, int w, int h) {
 void game(int w, int h, int t, int threads) {
 	int x,y,z;
 	unsigned univ[h][w];
+	unsigned univ_prime[h][w];
+
 	struct timeval start, end;
 	double tot_time = 0.;
 
@@ -60,13 +73,16 @@ void game(int w, int h, int t, int threads) {
 	if (x > 1000) printbig(univ, w, h,0);
 	
 	for(z = 0; z < t;z++) {
-		if (x <= 1000) show(univ, w, h);
-		
+		if (x <= 1000 && z%2 == 0) show(univ, w, h);
+		else if(x <= 1000 && z%2 != 0) show(univ_prime, w, h);
 		// get starting time at iteration z
 		gettimeofday(&start, NULL);
 		
 		// lets evolve the current generation
-		evolve(univ, w, h);
+		if(z%2 == 0)
+			evolve(univ, univ_prime,w, h);
+		else
+			evolve(univ_prime, univ,w, h);
 
 		// get ending time of iteration z
 		gettimeofday(&end, NULL);
@@ -79,7 +95,9 @@ void game(int w, int h, int t, int threads) {
 		    printf("Iteration %d is : %f ms\n", z, (double) elapsed_wtime(start, end));
 		}
 	}
-	if (x > 1000) printbig(univ, w, h,1);
+
+	if (x > 1000 && z%2 == 0) printbig(univ, w, h,1);
+	else if (x > 1000 && z%2 != 0) printbig(univ_prime, w, h,1);
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
@@ -118,7 +136,9 @@ int main(int c, char **v) {
 	game(w, h, t, threads);
 
 	// check the actual number of threads used by the program
-	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, actual_threads);
+	//printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, actual_threads);
+	printf("%s", 0%2==0 ? "true" : "false");
+
 	
 }
 

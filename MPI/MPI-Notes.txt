@@ -7,10 +7,6 @@ EXECUTION:
     -mpiexec -hostfile host_list.txt -perhost 1 -np 11 /bin/hostname
 
     
-
-
-
-
 ------------------------------------- MPI FUNCTIONS AND VARIABLES -----------------------------------------------
 BASICA FUNNC:
 

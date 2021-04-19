@@ -15,7 +15,7 @@ unsigned int **allocate_empty_grid(int rows, int cols)
 
 	int i;
 	//allocate memory for an array of pointers and then allocate memory for every row
-	unsigned int *grid = (unsigned int *)malloc(rows *cols* sizeof(unsigned int));
+	unsigned int *grid = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
 	unsigned int **array = (unsigned int **)malloc(rows*sizeof(unsigned int*));
 	for (i = 0; i < rows; i++)
 		array[i] = &(grid[cols*i]);
@@ -51,12 +51,27 @@ void print_block(struct grid_block* gridBlock) {
 void print_received_row(int buffer[], int numCols){
 
 	int x;
-	//printf("\033[H\033[J");
+	
 	for (x = 0; x < numCols; x++)
 		printf(buffer[x] == ALIVE ? "\033[07m  \033[m" : "  ");
 	printf("\033[E");
 	
 }
+
+void print_received_row_big(int buffer[], int numCols){
+
+	int x;
+	
+	FILE *f;
+	
+	f = fopen("glife.txt", "a" );
+	for (x = 0; x < numCols; x++)
+		fprintf (f,"%c", gridBlock->block[x] ? 'x' : ' ');
+	fprintf(f,"\n");
+	
+}
+
+
 
 //function to allocate a block in a node and initialize the field of the struct it
 void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost, int nCols_with_Ghost, int upper_neighbour, int lower_neighbour, int rank, int size)
@@ -87,7 +102,28 @@ void init_grid_block(struct grid_block *gridBlock)
 			gridBlock->block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 }
 
-void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost)
+
+void printbig(struct grid_block *gridBlock, int t) {
+	
+	int x,y;
+	
+	FILE *f;
+	
+	if(t == 0) f = fopen("glife.txt", "w" );
+	else f = fopen("glife.txt", "a" );
+	
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) fprintf (f,"%c", gridBlock->block[y][x] ? 'x' : ' ');
+		fprintf(f,"\n");
+	}
+	
+	//fprintf(f,"\n\n\n\n\n\n ******************************************************************************************** \n\n\n\n\n\n");
+	fflush(f);
+	fclose(f);
+}
+
+
+void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost, int t)
 {
 
 	int i, j;
@@ -103,8 +139,10 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 	else{ 
 		
 		//if I'm the root: print and receive
-
-		print_block(gridBlock);
+		
+		if( nCols > 1000)
+			printbig(gridBlock,t);
+		else print_block(gridBlock);
 
 		int src, rec_idx, i_buf;
 
@@ -124,7 +162,9 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 			for (rec_idx = 0; rec_idx < nRows_rec; rec_idx++){
 				
 				MPI_Recv(&buffer[0], nCols, MPI_INT, src, 0, MPI_COMM_WORLD, &stat);
-				print_received_row(buffer, nCols);	
+				
+				if( nCols > 1000)
+					print_received_row(buffer, nCols);	
 			}
 		}
 
@@ -152,7 +192,6 @@ void print_buffer(struct grid_block *gridBlock, unsigned int *buffer) {
 // row to the lower neighbour. (Try to use dataype to send and check if it improve performance)
 // Ghost Columns: Copy fisrt column to the last ghost columns
 
-//TODO: evolution of game of a block, and manage neighbours
 void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, int nRows, int nCols, MPI_Datatype row_block_type)
 {
 
@@ -222,7 +261,6 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	//allocate the next grid used to compute the evolution of the next time step
 	unsigned int **next_gridBlock;
 
-	//TODO: see difference of performance in seding using derived datatype and without
 	// create a derived datatype to send a row
 	MPI_Datatype row_block_type, row_block_without_ghost;
 
@@ -241,7 +279,7 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 
 	for (t = 0; t < time; t++){
 
-		display(gridBlock, nRows, nCols, row_block_without_ghost);
+		display(gridBlock, nRows, nCols, row_block_without_ghost, t);
 		evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
 	
 	}
