@@ -99,6 +99,7 @@ void init_grid_block(struct grid_block *gridBlock)
 void printbig_block(struct grid_block *gridBlock, int t, char filename[])
 {
 
+	
 	int x, y;
 
 	FILE *f;
@@ -108,6 +109,10 @@ void printbig_block(struct grid_block *gridBlock, int t, char filename[])
 	else
 		f = fopen(filename, "a");
 
+	// separate 1 time step from last
+	if( t == gridBlock->time_step - 1)
+		fprintf(f,"\n\n\n\n\n\n ***************************************************************************************************************************************** \n\n\n\n\n\n");
+
 	for (x = 1; x < gridBlock->numRows_ghost - 1; x++)
 	{
 		for (y = 1; y < gridBlock->numCols_ghost - 1; y++)
@@ -115,6 +120,7 @@ void printbig_block(struct grid_block *gridBlock, int t, char filename[])
 
 		fprintf(f, "\n");
 	}
+	
 
 	fflush(f);
 	fclose(f);

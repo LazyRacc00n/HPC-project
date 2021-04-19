@@ -19,6 +19,7 @@
 
 
 void swap(unsigned int ***old, unsigned int ***new) {
+	
     unsigned int **temp = *old;
 
     *old = *new;
@@ -82,7 +83,9 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 		//for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 	}
 
-	swap(&univ, &new);
+	//swap(&univ, &new);
+
+	univ = &new;
 	
 }
  
@@ -96,7 +99,7 @@ void game(int w, int h, int t, int threads) {
 	double tot_time = 0.;
 
 	//initialization
-	//srand(10);
+	srand(10);
 	for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 	
 	if (x > 1000) printbig(univ, w, h,0);
