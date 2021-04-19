@@ -1,5 +1,5 @@
 #include "mpi.h"
-
+#include "../../utils.h"
 
 
 #define ALIVE 1

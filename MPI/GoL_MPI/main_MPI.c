@@ -7,7 +7,7 @@
 */
 
 #include "gameOfLife_MPI.h"
-#include "../../utils.h"
+
 
 // Allocate a matrix so as to have elements contiguos in memory
 unsigned int **allocate_empty_grid(int rows, int cols)
@@ -209,7 +209,6 @@ void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 			if( nCols > 1000) printbig_buffer_V2(nRows_received, nCols, buffer, filename);
 			else print_buffer_V2(nRows_received, nCols, buffer);
 					
-		
 			
 		}
 	}
