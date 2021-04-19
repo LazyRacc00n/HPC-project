@@ -80,3 +80,5 @@ MULTIPLE MACHINES:
     - 12 nodes: 64 cores * 12 nodes (OpenMP)
     - for SMT (Simultaneous multithreading) : 256 * 12 threads ( MPI or, possibly OpenMP + MPI)
 -----------------------------------------------------------------------------------------------------------------
+
+p = 2, 704, 2846

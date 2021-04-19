@@ -146,7 +146,6 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype bl
 // row to the lower neighbour. (Try to use dataype to send and check if it improve performance)
 // Ghost Columns: Copy fisrt column to the last ghost columns
 
-//TODO: evolution of game of a block, and manage neighbours
 void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, int nRows, int nCols, MPI_Datatype row_block_type)
 {
 

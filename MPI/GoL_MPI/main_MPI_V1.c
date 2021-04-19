@@ -7,7 +7,7 @@
 */
 
 #include "gameOfLife_MPI.h"
-
+#include "../../utils.h"
 
 // Allocate a matrix so as to have elements contiguos in memory
 unsigned int **allocate_empty_grid(int rows, int cols)
@@ -260,6 +260,8 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	int i, j, t;
 	//allocate the next grid used to compute the evolution of the next time step
 	unsigned int **next_gridBlock;
+	struct timeval start, end;
+	double exec_time = 0.;
 
 	// create a derived datatype to send a row
 	MPI_Datatype row_block_type, row_block_without_ghost;
@@ -276,14 +278,50 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	init_grid_block(gridBlock);
 
 	next_gridBlock = allocate_empty_grid(gridBlock->numRows_ghost, gridBlock->numCols_ghost);
+	
+	//synchronize all the nodes to start the time
+	MPI_Barrier(MPI_COMM_WORLD);
+	if(gridBlock->rank == 0)
+		gettimeofday(&start, NULL);
+	
 
 	for (t = 0; t < time; t++){
-
-		display(gridBlock, nRows, nCols, row_block_without_ghost, t);
+		
+		//if( nCols < 1000)
+		//	display(gridBlock, nRows, nCols, row_block_without_ghost);
+		// get starting time at iteration z
+		
 		evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
+			// get ending time of iteration z
+
+		// sum up the total time execution
+		//
+
+		//if (nCols > 1000)
+		//	printf("Iteration %d is : %f ms\n", t, (double) elapsed_wtime(start, end));
+	}
+
+	//synchronize all the nodes to end the time
+	MPI_Barrier(MPI_COMM_WORLD);
+	if(gridBlock->rank == 0){
+		gettimeofday(&end, NULL);
+		exec_time = (double) elapsed_wtime(start, end);
+		char *fileName = (char*)malloc(50 * sizeof(char));
+		sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d.txt", nCols, nRows, time);
+
+		writeFile(fileName, gridBlock->mpi_size==2, exec_time, gridBlock->mpi_size);
 	
 	}
 
+	//printf("\npartial_time\n: %f ms",partial_time);
+
+	//double total_time_all_nodes;
+
+	//MPI_Scan(&partial_time, &total_time_all_nodes, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+
+	// Allocates storage
+	
+	
 	// free the derived datatype
 	MPI_Type_free(&row_block_type);
 	MPI_Type_free(&row_block_without_ghost);
