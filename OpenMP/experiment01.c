@@ -19,11 +19,12 @@
 void evolve(void *u, int w, int h) {
 	unsigned (*univ)[w] = u;
 	unsigned new[h][w];
-	int x,y,x1,y1,n;
 	
 	#pragma omp parallel shared(new, univ) 
 	{	
-	#pragma omp parallel for private(x, y1, x1, n) shared(new, univ) schedule(static)
+		int x,y,x1,y1,n;
+
+	#pragma omp parallel for schedule(static)
 	for ( y = 0; y < h; y++) 
         for ( x = 0; x < w; x++) {
 		    n = 0;
