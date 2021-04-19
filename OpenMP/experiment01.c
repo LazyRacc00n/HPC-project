@@ -40,7 +40,7 @@ void evolve(void *u, int w, int h) {
 		
 	    }
 	
-	#pragma omp parallel for private(x) shared(new, univ) schedule(static)
+	#pragma omp parallel for schedule(static)
 	// update the board
 	for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 
