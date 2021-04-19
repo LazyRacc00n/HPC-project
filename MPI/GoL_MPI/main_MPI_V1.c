@@ -291,6 +291,9 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	//free grids
 	free_grid(gridBlock->block);
 	free_grid(next_gridBlock);
+
+
+	
 }
 
 // obtain the upper neighbour
