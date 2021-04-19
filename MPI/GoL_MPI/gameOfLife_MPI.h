@@ -20,5 +20,7 @@ struct grid_block{
     int mpi_size; // total size of the communicator ( MPI_COMM_WORLD )
     
     unsigned int **block; //matrix that represent the local grid
+
+    int time_step;
     
 };

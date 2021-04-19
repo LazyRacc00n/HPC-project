@@ -8,7 +8,26 @@
 
 #include "../utils.h"
 
+// Allocate a matrix so as to have elements contiguos in memory
+unsigned int **allocate_empty_grid(int rows, int cols)
+{
 
+	int i;
+	//allocate memory for an array of pointers and then allocate memory for every row
+	unsigned int *grid = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
+	unsigned int **array = (unsigned int **)malloc(rows*sizeof(unsigned int*));
+	for (i = 0; i < rows; i++)
+		array[i] = &(grid[cols*i]);
+
+	return array;
+}
+
+void free_grid(unsigned int **grid){
+
+	free(grid[0]);
+	free(grid);
+
+}
 
 /*
 * a cell is born, if it has exactly three neighbours 
@@ -17,7 +36,7 @@
 * a cell survives to the next generation, if it does not die of loneliness 
 * or overcrowding 
 */
-void evolve(void *u, int w, int h, int threads) {
+void evolve(void *u, void *v, int w, int h) {
 	unsigned (*univ)[w] = u;
 	unsigned new[h][w];
 
@@ -50,11 +69,12 @@ void evolve(void *u, int w, int h, int threads) {
 	
 }
  
- 
- 
+
 void game(int w, int h, int t, int threads) {
 	int x,y,z;
-	unsigned univ[h][w];
+	unsigned int **univ = allocate_empty_grid(h, w);
+	unsigned int **univ_prime = allocate_empty_grid(h, w);
+
 	struct timeval start, end;
 	double tot_time = 0.;
 
@@ -65,32 +85,38 @@ void game(int w, int h, int t, int threads) {
 	if (x > 1000) printbig(univ, w, h,0);
 	
 	for(z = 0; z < t;z++) {
-		if (x <= 1000) show(univ, w, h);
-		
+		if (x <= 1000 && z%2 == 0) show(univ, w, h);
+		else if(x <= 1000 && z%2 != 0) show(univ_prime, w, h);
 		// get starting time at iteration z
 		gettimeofday(&start, NULL);
 		
 		// lets evolve the current generation
-		evolve(univ, w, h, threads);
+		if(z%2 == 0)
+			evolve(univ, univ_prime,w, h);
+		else
+			evolve(univ_prime, univ,w, h);
 
 		// get ending time of iteration z
 		gettimeofday(&end, NULL);
-		
-		// sum up the total time execution
-		tot_time += (double) elapsed_wtime(start, end);
 		
 		if (x > 1000) {
 			
 		    printf("Iteration %d is : %f ms\n", z, (double) elapsed_wtime(start, end));
 		}
 	}
-	if (x > 1000) printbig(univ, w, h,1);
+	if (x > 1000 && z%2 == 0) printbig(univ, w, h,1);
+	else if (x > 1000 && z%2 != 0) printbig(univ_prime, w, h,1);
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Exp03-OMP-%d-%d-%d.txt", w, h, t);
+	sprintf(fileName, "Results/Exp03-OMP-%d-%d-%d.txt", w, h, t);
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
+
+	free_grid(univ);
+	free_grid(univ_prime);
+
+
 
 }
  

@@ -58,23 +58,23 @@ void print_received_row(int buffer[], int numCols){
 	
 }
 
-void print_received_row_big(int buffer[], int numCols){
+void print_received_row_big(int buffer[], int numCols, int last, char filename[]){
 
 	int x;
-	
 	FILE *f;
-	
-	f = fopen("glife.txt", "a" );
+	f = fopen(filename, "a" );
 	for (x = 0; x < numCols; x++)
-		fprintf (f,"%c", gridBlock->block[x] ? 'x' : ' ');
+		fprintf (f,"%c", buffer[x] ? 'x' : ' ');
 	fprintf(f,"\n");
+	if(last)
+		fprintf(f,"\n\n\n\n\n\n ******************************************************************************************** \n\n\n\n\n\n");
+	fclose(f);
 	
 }
 
 
-
 //function to allocate a block in a node and initialize the field of the struct it
-void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost, int nCols_with_Ghost, int upper_neighbour, int lower_neighbour, int rank, int size)
+void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost, int nCols_with_Ghost, int upper_neighbour, int lower_neighbour, int rank, int size, int time)
 {
 
 	int i;
@@ -86,6 +86,8 @@ void init_and_allocate_block(struct grid_block *gridBlock, int nRows_with_ghost,
 	gridBlock->lower_neighbour = lower_neighbour;
 	gridBlock->rank = rank;
 	gridBlock->mpi_size = size;
+	gridBlock->time_step = time;
+	
 
 
 	//allocate memory for an array of pointers and then allocate memory for every row
@@ -103,31 +105,131 @@ void init_grid_block(struct grid_block *gridBlock)
 }
 
 
-void printbig(struct grid_block *gridBlock, int t) {
+void printbig_block(struct grid_block *gridBlock, int t, char filename[]) {
 	
 	int x,y;
 	
 	FILE *f;
+
+	if(t == 0) f = fopen(filename, "w" );
+	else f = fopen(filename, "a" );
 	
-	if(t == 0) f = fopen("glife.txt", "w" );
-	else f = fopen("glife.txt", "a" );
-	
-	for (y = 0; y < h; y++) {
-		for (x = 0; x < w; x++) fprintf (f,"%c", gridBlock->block[y][x] ? 'x' : ' ');
+	for (x = 1; x < gridBlock->numRows_ghost - 1; x++) {
+		for (y = 1; y < gridBlock->numCols_ghost - 1; y++) fprintf (f,"%c", gridBlock->block[x][y] ? 'x' : ' ');
+		
 		fprintf(f,"\n");
 	}
 	
-	//fprintf(f,"\n\n\n\n\n\n ******************************************************************************************** \n\n\n\n\n\n");
+	fflush(f);
+	fclose(f);
+	
+}
+
+void print_buffer_V2(int rows, int cols, unsigned int buffer[rows][cols])
+{
+	int i, j;
+	
+	for (i = 0; i < rows; i++)
+	{
+		for (j = 0; j < cols; j++)
+			printf(buffer[i][j] ? "\033[07m  \033[m" : "  ");
+		printf("\033[E");
+	}
+}
+
+void printbig_buffer_V2(int rows, int cols, unsigned int buffer[rows][cols], char filename[])
+{
+	
+	int i, j;
+	FILE *f;
+
+	f = fopen(filename, "a" );
+	
+	for (i = 0; i < rows; i++)
+	{
+		for (j = 0; j < cols; j++)
+			fprintf (f,"%c", buffer[i][j] ? 'x' : ' ');
+		fprintf(f,"\n");
+	}
+
+	
+	
+	
 	fflush(f);
 	fclose(f);
 }
 
 
-void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost, int t)
+// VERSION 2 OF DISPLAY, WITH MPI_TYPE_VECTOR
+void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype block_type, int t){
+
+	int i, j;
+	MPI_Status stat;
+	char filename[] = "glife_MPI_v2.txt";
+
+	//send data to the root, if I'm not the root
+	if (gridBlock->rank != MPI_root)
+	{
+		int numRows = gridBlock->numRows_ghost - 2;
+		int numCols = gridBlock->numCols_ghost - 2;
+
+		unsigned int buff[numRows][numCols];
+
+		MPI_Send(&(gridBlock->block[1][1]), 1, block_type, MPI_root, 0, MPI_COMM_WORLD);
+	}
+	else
+	{
+		//if I'm the root: print and receive the blocks of the other nodes
+		//print_buffer(gridBlock->block)
+		
+		if( nCols > 1000){
+			
+			printbig_block(gridBlock,t, filename);
+		}
+			
+		else print_block(gridBlock);
+
+
+		int src, rec_idx, i_buf, j_buf;
+
+		//Receive form other nodes ( excluding the root, 0 )
+		for (src = 1; src < gridBlock->mpi_size; src++)
+		{
+			// I need know how much rows the root must receive, are different for some node
+			//For now, I can compute the number of rows of each node
+
+			int nRows_received = nRows / gridBlock->mpi_size;
+			if (src == gridBlock->mpi_size - 1)
+				nRows_received += nRows % gridBlock->mpi_size;
+
+			unsigned int buffer[nRows_received][nCols];
+
+			MPI_Recv(&(buffer[0][0]), (nRows_received) * (nCols), MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
+
+			if( nCols > 1000) printbig_buffer_V2(nRows_received, nCols, buffer, filename);
+			else print_buffer_V2(nRows_received, nCols, buffer);
+					
+		
+			
+		}
+	}
+
+	if( nCols <= 1000){
+		
+		fflush(stdout);
+		usleep(200000);
+	}	
+}
+
+
+
+// VERSION 1 OF DISPLAY, EACH NODE SEND ROW BY ROW UNSING MPI_TYPE_COMNTIGUOS
+void display_v1(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost, int t)
 {
 
 	int i, j;
 	MPI_Status stat;
+	char filename[] = "glife_MPI_v1.txt";
 
 	//send data to the root, if I'm not the root
 	if (gridBlock->rank != MPI_root)
@@ -141,7 +243,7 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 		//if I'm the root: print and receive
 		
 		if( nCols > 1000)
-			printbig(gridBlock,t);
+			printbig_block(gridBlock,t, filename);
 		else print_block(gridBlock);
 
 		int src, rec_idx, i_buf;
@@ -153,7 +255,7 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 			//For now, I can compute the number of rows of each node
 
 			int nRows_rec = nRows / gridBlock->mpi_size;
-
+			
 			if (src == gridBlock->mpi_size - 1)
 				nRows_rec += nRows % gridBlock->mpi_size;
 
@@ -163,15 +265,23 @@ void display(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype ro
 				
 				MPI_Recv(&buffer[0], nCols, MPI_INT, src, 0, MPI_COMM_WORLD, &stat);
 				
-				if( nCols > 1000)
-					print_received_row(buffer, nCols);	
+				if( nCols > 1000){
+					
+					int last = (src == gridBlock->mpi_size - 1) && (rec_idx == nRows_rec - 1) && ( t == gridBlock->time_step - 1);
+					print_received_row_big(buffer, nCols, last, filename);
+				}
+					
+				else print_received_row(buffer, nCols);
 			}
 		}
 
 	}
 
-	fflush(stdout);
-	usleep(200000);
+	if( nCols <= 1000){
+		
+		fflush(stdout);
+		usleep(200000);
+	}	
 
 }
 
@@ -255,7 +365,7 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 }
 
 // call envolve and diaplay the evolution
-void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
+void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int version)
 {
 	int i, j, t;
 	//allocate the next grid used to compute the evolution of the next time step
@@ -264,15 +374,20 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	double exec_time = 0.;
 
 	// create a derived datatype to send a row
-	MPI_Datatype row_block_type, row_block_without_ghost;
+	MPI_Datatype row_block_type, row_block_without_ghost, block_type;
 
 	// for the envolve
 	MPI_Type_contiguous(gridBlock->numCols_ghost, MPI_UNSIGNED, &row_block_type);
 
+	//to send a block, thanks to use of MPI derived datatype
+	MPI_Type_vector(gridBlock->numRows_ghost - 2, gridBlock->numCols_ghost - 2, gridBlock->numCols_ghost, MPI_UNSIGNED, &block_type);
+
 	// for the display
 	MPI_Type_contiguous(nCols, MPI_UNSIGNED, &row_block_without_ghost);
+	
 	MPI_Type_commit(&row_block_type);
 	MPI_Type_commit(&row_block_without_ghost);
+	MPI_Type_commit(&block_type);
 
 	//Random Initialization of the grid assigned to each node
 	init_grid_block(gridBlock);
@@ -284,21 +399,18 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	if(gridBlock->rank == 0)
 		gettimeofday(&start, NULL);
 	
-
 	for (t = 0; t < time; t++){
 		
-		//if( nCols < 1000)
-		//	display(gridBlock, nRows, nCols, row_block_without_ghost);
-		// get starting time at iteration z
-		
 		evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
-			// get ending time of iteration z
+		
+		if( version == 1){
+			display_v1(gridBlock, nRows, nCols, row_block_without_ghost, t);
+		}else{
 
-		// sum up the total time execution
-		//
-
-		//if (nCols > 1000)
-		//	printf("Iteration %d is : %f ms\n", t, (double) elapsed_wtime(start, end));
+			display_v2(gridBlock, nRows, nCols, block_type, t);
+		}
+		
+		
 	}
 
 	//synchronize all the nodes to end the time
@@ -313,18 +425,12 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols)
 	
 	}
 
-	//printf("\npartial_time\n: %f ms",partial_time);
-
-	//double total_time_all_nodes;
-
-	//MPI_Scan(&partial_time, &total_time_all_nodes, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-
 	// Allocates storage
-	
 	
 	// free the derived datatype
 	MPI_Type_free(&row_block_type);
 	MPI_Type_free(&row_block_without_ghost);
+	MPI_Type_free(&block_type);
 
 	//free grids
 	free_grid(gridBlock->block);
@@ -349,6 +455,37 @@ int main(int argc, char **argv)
 
 	int rank, size, err;
 
+	//Parse Arguments
+	int nCols = 0, nRows = 0, time = 0, version=0;
+	if (argc > 1)
+		nCols = atoi(argv[1]);
+	
+	if (argc > 2)
+		nRows = atoi(argv[2]);
+	
+	if (argc > 3)
+		time = atoi(argv[3]);
+	
+	if (argc > 4)
+		version = atoi(argv[4]);
+	
+	if (nCols <= 0)
+		nCols = 30;
+	
+	if (nRows <= 0)
+		nRows = 30;
+	
+	if (time <= 0)
+		time = 100;
+
+	if (version <= 0 || version > 2){
+		
+		printf("\n\nVersion not exists ! It will be executed with the version 1!\n\n");
+		version = 1;
+
+	}
+		
+
 	err = MPI_Init(&argc, &argv);
 
 	if (err != 0)
@@ -361,24 +498,6 @@ int main(int argc, char **argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	int nCols = 0, nRows = 0, time = 0;
-	if (argc > 1)
-		nCols = atoi(argv[1]);
-	
-	if (argc > 2)
-		nRows = atoi(argv[2]);
-	
-	if (argc > 3)
-		time = atoi(argv[3]);
-	
-	if (nCols <= 0)
-		nCols = 30;
-	
-	if (nRows <= 0)
-		nRows = 30;
-	
-	if (time <= 0)
-		time = 100;
 
 	//send number of columns and number of rows to each process
 	MPI_Bcast(&nRows, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
@@ -402,9 +521,9 @@ int main(int argc, char **argv)
 
 	struct grid_block blockGrid;
 
-	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size);
+	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size, time);
 
-	game(&blockGrid, time, nRows, nCols);
+	game(&blockGrid, time, nRows, nCols, version);
 
 
 	//-----------------------------------------------------------------------------------------------

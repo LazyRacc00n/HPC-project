@@ -85,7 +85,7 @@ void game(int w, int h, int t, int threads) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Exp01-OMP-%d-%d-%d.txt", w, h, t);
+	sprintf(fileName, "Results/Exp01-OMP-%d-%d-%d.txt", w, h, t);
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
