@@ -28,7 +28,6 @@ void free_grid(unsigned int **grid)
 	free(grid);
 }
 
-
 void print_block(struct grid_block *gridBlock)
 {
 	int x, y;
@@ -99,7 +98,6 @@ void init_grid_block(struct grid_block *gridBlock)
 void printbig_block(struct grid_block *gridBlock, int t, char filename[])
 {
 
-	
 	int x, y;
 
 	FILE *f;
@@ -110,8 +108,8 @@ void printbig_block(struct grid_block *gridBlock, int t, char filename[])
 		f = fopen(filename, "a");
 
 	// separate 1 time step from last
-	if( t == gridBlock->time_step - 1)
-		fprintf(f,"\n\n\n\n\n\n ***************************************************************************************************************************************** \n\n\n\n\n\n");
+	if (t == gridBlock->time_step - 1)
+		fprintf(f, "\n\n\n\n\n\n ***************************************************************************************************************************************** \n\n\n\n\n\n");
 
 	for (x = 1; x < gridBlock->numRows_ghost - 1; x++)
 	{
@@ -120,7 +118,6 @@ void printbig_block(struct grid_block *gridBlock, int t, char filename[])
 
 		fprintf(f, "\n");
 	}
-	
 
 	fflush(f);
 	fclose(f);
@@ -182,9 +179,8 @@ void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 
 		if (nCols > 1000 && (t == 0 || t == gridBlock->time_step - 1))
 			printbig_block(gridBlock, t, filename);
-		else
-			if( nCols <= 1000)
-				print_block(gridBlock);
+		else if (nCols <= 1000)
+			print_block(gridBlock);
 
 		int src, rec_idx, i_buf, j_buf;
 
@@ -204,9 +200,8 @@ void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 
 			if (nCols > 1000 && (t == 0 || t == gridBlock->time_step - 1))
 				printbig_buffer_V2(nRows_received, nCols, buffer, filename);
-			else
-				if( nCols <= 1000)
-					print_buffer_V2(nRows_received, nCols, buffer);
+			else if (nCols <= 1000)
+				print_buffer_V2(nRows_received, nCols, buffer);
 		}
 	}
 
@@ -236,19 +231,16 @@ void display_v1(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 	{
 
 		//if I'm the root: print and receive
-
 		if ((nCols > 1000) && (t == 0 || t == gridBlock->time_step - 1))
 			printbig_block(gridBlock, t, filename);
-		else
-			if(nCols <= 1000)
-				print_block(gridBlock);
+		else if (nCols <= 1000)
+			print_block(gridBlock);
 
 		int src, rec_idx, i_buf;
 
 		//Receive form other nodes ( excluding the root, 0 )
 		for (src = 1; src < gridBlock->mpi_size; src++)
 		{
-
 			// I need know how much rows the root must receive, are different for some node
 			//For now, I can compute the number of rows of each node
 
@@ -264,11 +256,10 @@ void display_v1(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 
 				MPI_Recv(&buffer[0], nCols, MPI_INT, src, 0, MPI_COMM_WORLD, &stat);
 
-				if ( (nCols > 1000) && (t == 0 || t == gridBlock->time_step - 1))
+				if ((nCols > 1000) && (t == 0 || t == gridBlock->time_step - 1))
 					print_received_row_big(buffer, nCols, filename);
-				else
-					if( nCols <= 1000)
-						print_received_row(buffer, nCols);
+				else if (nCols <= 1000)
+					print_received_row(buffer, nCols);
 			}
 		}
 	}
@@ -355,11 +346,9 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 		}
 	}
 
-	
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
 		for (j = 1; j < gridBlock->numCols_ghost - 1; j++)
 			gridBlock->block[i][j] = next_gridBlock[i][j];
-
 }
 
 // call envolve and diaplay the evolution
@@ -420,12 +409,9 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int vers
 		gettimeofday(&end, NULL);
 		exec_time = (double)elapsed_wtime(start, end);
 		char *fileName = (char *)malloc(50 * sizeof(char));
-		sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d.txt", nCols, nRows, time);
-
+		sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d.csv", nCols, nRows, time);
 		writeFile(fileName, gridBlock->mpi_size == 2, exec_time, gridBlock->mpi_size);
 	}
-
-	// Allocates storage
 
 	// free the derived datatype
 	MPI_Type_free(&row_block_type);
