@@ -6,3 +6,4 @@
 double elapsed_wtime(struct timeval , struct timeval );
 void show(void *u, int w, int h);
 void printbig(void *u, int w, int h, int z);
+void writeFile(char* fileName, bool first, double time , int n_core);

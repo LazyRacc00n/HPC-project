@@ -98,7 +98,7 @@ void game(int w, int h, int t, int threads) {
 	char *fileName = (char*)malloc(50 * sizeof(char));
 	sprintf(fileName, "Results/Exp02-OMP-%d-%d-%d.csv", w, h, t);
 
-	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
+	writeFile(fileName, (threads==2 || threads==1), tot_time, threads);
 
 }
  

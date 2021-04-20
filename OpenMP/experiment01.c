@@ -76,18 +76,17 @@ void game(int w, int h, int t, int threads) {
 		// sum up the total time execution
 		tot_time += (double) elapsed_wtime(start, end);
 		
-		if (x > 1000) {
-			
-		    printf("Iteration %d is : %f ms\n", z, (double) elapsed_wtime(start, end));
-		}
+		if (x > 1000) 
+			printf("Iteration %d is : %f ms\n", z, (double) elapsed_wtime(start, end));
+		
 	}
 	if (x > 1000) printbig(univ, w, h,1);
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Results/Exp01-OMP-%d-%d-%d.txt", w, h, t);
+	sprintf(fileName, "Results/Exp01-OMP-%d-%d-%d.csv", w, h, t);
 
-	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
+	writeFile(fileName, (threads==2 || threads==1), tot_time, threads);
 
 	free(fileName);
 }
@@ -115,7 +114,6 @@ int main(int c, char **v) {
 
 	// set the threads with OpenMP
 	omp_set_num_threads(threads);
-	int actual_threads = omp_get_num_threads();
 	
 	// execute the game code
 	game(w, h, t, threads);
