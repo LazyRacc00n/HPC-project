@@ -43,7 +43,6 @@ void writeFile(char* fileName, bool first, double time , int n_core){
 
 void printbig(unsigned int **univ, int w, int h, int z) {
 	int x,y;
-	//int (*univ)[w] = u;
 	
 	FILE *f;
 	
@@ -61,7 +60,7 @@ void printbig(unsigned int **univ, int w, int h, int z) {
 
 void show(unsigned int **univ, int w, int h) {
 	int x,y;
-	//int (*univ)[w] = u;
+
 	printf("\033[H");
 	for (y = 0; y < h; y++) {
 		for (x = 0; x < w; x++) printf(univ[y][x] ? "\033[07m  \033[m" : "  ");
@@ -72,12 +71,11 @@ void show(unsigned int **univ, int w, int h) {
 }
 
 
-void swap(void **old, void **new) {
-	
-    void *temp = *old;
+void swap_grids(unsigned int ***old, unsigned int ***new) {
+    bool **temp = *old;
 
     *old = *new;
-    new = temp;
+    *new = temp;
 }
 
 // Allocate a matrix so as to have elements contiguos in memory
@@ -112,7 +110,7 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 	//unsigned (*univ)[w] = u;
 	//unsigned new[h][w];
 
-	#pragma omp parallel //shared(new, univ) 
+	#pragma omp parallel shared(new, univ) 
 	{
 		int x,y,x1,y1,n;
         
@@ -138,9 +136,8 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 
 	}
 
-	swap((void*)&univ, (void*)&new);
-	
-	
+	swap(&univ, &new);
+
 }
  
 

@@ -228,7 +228,6 @@ void display_v1(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 	}
 	else
 	{
-
 		//if I'm the root: print and receive
 		if ((nCols > 1000) && (t == 0 || t == gridBlock->time_step - 1))
 			printbig_block(gridBlock, t, filename);
@@ -381,7 +380,6 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int vers
 	next_gridBlock = allocate_empty_grid(gridBlock->numRows_ghost, gridBlock->numCols_ghost);
 
 	//synchronize all the nodes to start the time
-	MPI_Barrier(MPI_COMM_WORLD);
 	if (gridBlock->rank == 0)
 		gettimeofday(&start, NULL);
 
@@ -394,16 +392,20 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int vers
 			display_v1(gridBlock, nRows, nCols, row_block_without_ghost, t);
 		else
 			display_v2(gridBlock, nRows, nCols, block_type, t);
-		}
+	}
 
 	//synchronize all the nodes to end the time
-	MPI_Barrier(MPI_COMM_WORLD);
+	
 	if (gridBlock->rank == 0)
 	{
 		gettimeofday(&end, NULL);
 		exec_time = (double)elapsed_wtime(start, end);
 		char *fileName = (char *)malloc(50 * sizeof(char));
-		sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d.csv", nCols, nRows, time);
+		if(version == 1)
+			sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V1.csv", nCols, nRows, time);
+		else
+			sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V2.csv", nCols, nRows, time);
+		
 		writeFile(fileName, gridBlock->mpi_size == 2, exec_time, gridBlock->mpi_size);
 	}
 
@@ -478,7 +480,6 @@ int main(int argc, char **argv)
 	//send number of columns and number of rows to each process
 	MPI_Bcast(&nRows, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
 	MPI_Bcast(&nCols, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
-
 	MPI_Bcast(&time, 1, MPI_INT, MPI_root, MPI_COMM_WORLD);
 
 	//Each process compute the size of its chunks
@@ -487,8 +488,7 @@ int main(int argc, char **argv)
 	if (rank == size - 1)
 		n_rows_local += nRows % size;
 
-	// ghost colums are which that communicate with neighbours.
-	// recever buffer
+	// Adding ghost rows and that allow communicate with neighbors.
 	int n_rows_local_with_ghost = n_rows_local + 2;
 	int n_cols_with_ghost = nCols + 2;
 
@@ -499,6 +499,7 @@ int main(int argc, char **argv)
 
 	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size, time);
 
+	MPI_Barrier(MPI_COMM_WORLD);
 	game(&blockGrid, time, nRows, nCols, version);
 
 	//-----------------------------------------------------------------------------------------------
