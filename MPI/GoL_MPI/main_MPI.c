@@ -155,7 +155,7 @@ void printbig_buffer_V2(int rows, int cols, unsigned int buffer[rows][cols], cha
 }
 
 // VERSION 2 OF DISPLAY, WITH MPI_TYPE_VECTOR
-void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype block_type, int t)
+void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype block_type, int t, bool exec_time)
 {
 
 	int i, j;
@@ -176,11 +176,14 @@ void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 	{
 		//if I'm the root: print and receive the blocks of the other nodes
 		//print_buffer(gridBlock->block)
-		if (nCols > 1000 && (t == 0 || t == gridBlock->time_step - 1))
-			printbig_block(gridBlock, t, filename);
-		else if (nCols <= 1000)
-			print_block(gridBlock);
 
+		if (!exec_time)
+		{
+			if (nCols > 1000 && (t == 0 || t == gridBlock->time_step - 1))
+				printbig_block(gridBlock, t, filename);
+			else if (nCols <= 1000)
+				print_block(gridBlock);
+		}
 		int src, rec_idx, i_buf, j_buf;
 
 		//Receive form other nodes ( excluding the root, 0 )
@@ -197,10 +200,13 @@ void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 
 			MPI_Recv(&(buffer[0][0]), (nRows_received) * (nCols), MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
 
-			if (nCols > 1000 && (t == 0 || t == gridBlock->time_step - 1))
-				printbig_buffer_V2(nRows_received, nCols, buffer, filename);
-			else if (nCols <= 1000)
-				print_buffer_V2(nRows_received, nCols, buffer);
+			if (!exec_time)
+			{
+				if (nCols > 1000 && (t == 0 || t == gridBlock->time_step - 1))
+					printbig_buffer_V2(nRows_received, nCols, buffer, filename);
+				else if (nCols <= 1000)
+					print_buffer_V2(nRows_received, nCols, buffer);
+			}
 		}
 	}
 
@@ -212,12 +218,15 @@ void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 }
 
 // VERSION 1 OF DISPLAY, EACH NODE SEND ROW BY ROW UNSING MPI_TYPE_COMNTIGUOS
-void display_v1(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost, int t)
+// if exec_time id true is not printed the evolution in order to take the execution time of the sending blocks to the root
+void display_v1(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype row_block_without_ghost, int t, bool exec_time)
 {
 
 	int i, j;
 	MPI_Status stat;
 	char filename[] = "glife_MPI_v1.txt";
+
+	double partial_time = 0., start, end;
 
 	//send data to the root, if I'm not the root
 	if (gridBlock->rank != MPI_root)
@@ -229,16 +238,23 @@ void display_v1(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 	else
 	{
 		//if I'm the root: print and receive
-		if ((nCols > 1000) && (t == 0 || t == gridBlock->time_step - 1))
-			printbig_block(gridBlock, t, filename);
-		else if (nCols <= 1000)
-			print_block(gridBlock);
 
+		if (!exec_time)
+		{
+
+			if ((nCols > 1000) && (t == 0 || t == gridBlock->time_step - 1))
+				printbig_block(gridBlock, t, filename);
+			else if (nCols <= 1000)
+				print_block(gridBlock);
+		}
+
+		//exec_time = (double)elapsed_wtime(start, end);
 		int src, rec_idx, i_buf;
 
 		//Receive form other nodes ( excluding the root, 0 )
 		for (src = 1; src < gridBlock->mpi_size; src++)
 		{
+
 			// I need know how much rows the root must receive, are different for some node
 			//For now, I can compute the number of rows of each node
 
@@ -254,10 +270,14 @@ void display_v1(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 
 				MPI_Recv(&buffer[0], nCols, MPI_INT, src, 0, MPI_COMM_WORLD, &stat);
 
-				if ((nCols > 1000) && (t == 0 || t == gridBlock->time_step - 1))
-					print_received_row_big(buffer, nCols, filename);
-				else if (nCols <= 1000)
-					print_received_row(buffer, nCols);
+				if (!exec_time)
+				{
+
+					if ((nCols > 1000) && (t == 0 || t == gridBlock->time_step - 1))
+						print_received_row_big(buffer, nCols, filename);
+					else if (nCols <= 1000)
+						print_received_row(buffer, nCols);
+				}
 			}
 		}
 	}
@@ -285,7 +305,6 @@ void print_buffer(struct grid_block *gridBlock, unsigned int *buffer)
 
 // Ghost Rows: In order to compute the envolve we need to send the first row to the upper neighbor and the last
 // row to the lower neighbour, thanks to the use of the top and bottom ghost rows.
-
 
 void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, int nRows, int nCols, MPI_Datatype row_block_type)
 {
@@ -350,13 +369,13 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 }
 
 // call envolve and diaplay the evolution
-void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int version)
+void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int version, bool exec_time)
 {
 	int i, j, t;
 	//allocate the next grid used to compute the evolution of the next time step
 	unsigned int **next_gridBlock;
 	struct timeval start, end;
-	double exec_time = 0.;
+	double partial_time = 0., tot_time = 0., send_time = 0.;
 
 	// create a derived datatype to send a row
 	MPI_Datatype row_block_type, row_block_without_ghost, block_type;
@@ -379,34 +398,41 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int vers
 
 	next_gridBlock = allocate_empty_grid(gridBlock->numRows_ghost, gridBlock->numCols_ghost);
 
-	//synchronize all the nodes to start the time
-	if (gridBlock->rank == 0)
-		gettimeofday(&start, NULL);
-
 	for (t = 0; t < time; t++)
 	{
+		if (gridBlock->rank == 0)
+			gettimeofday(&start, NULL);
 
 		evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
 
+		
+
 		if (version == 1)
-			display_v1(gridBlock, nRows, nCols, row_block_without_ghost, t);
+			display_v1(gridBlock, nRows, nCols, row_block_without_ghost, t, exec_time);
 		else
-			display_v2(gridBlock, nRows, nCols, block_type, t);
+			display_v2(gridBlock, nRows, nCols, block_type, t, exec_time);
+
+		//synchronize all the nodes to end the time
+		if (gridBlock->rank == 0)
+		{
+			gettimeofday(&end, NULL);
+			partial_time = (double)elapsed_wtime(start, end);
+			tot_time += partial_time;
+		}
+
+		
 	}
 
-	//synchronize all the nodes to end the time
-	
 	if (gridBlock->rank == 0)
 	{
-		gettimeofday(&end, NULL);
-		exec_time = (double)elapsed_wtime(start, end);
-		char *fileName = (char *)malloc(50 * sizeof(char));
-		if(version == 1)
-			sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V1.csv", nCols, nRows, time);
-		else
-			sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V2.csv", nCols, nRows, time);
-		
-		writeFile(fileName, gridBlock->mpi_size == 2, exec_time, gridBlock->mpi_size);
+
+			char *fileName = (char *)malloc(50 * sizeof(char));
+			if (version == 1)
+				sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V1.csv", nCols, nRows, time);
+			else
+				sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V2.csv", nCols, nRows, time);
+
+			writeFile(fileName, gridBlock->mpi_size == 2, tot_time, gridBlock->mpi_size);
 	}
 
 	// free the derived datatype
@@ -436,6 +462,7 @@ int main(int argc, char **argv)
 {
 
 	int rank, size, err;
+	bool exec_time;
 
 	//Parse Arguments
 	int nCols = 0, nRows = 0, time = 0, version = 0;
@@ -450,6 +477,9 @@ int main(int argc, char **argv)
 
 	if (argc > 4)
 		version = atoi(argv[4]);
+	
+	if (argc > 5)
+		exec_time = (bool)atoi(argv[5]);
 
 	if (nCols <= 0)
 		nCols = 30;
@@ -500,7 +530,7 @@ int main(int argc, char **argv)
 	init_and_allocate_block(&blockGrid, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size, time);
 
 	MPI_Barrier(MPI_COMM_WORLD);
-	game(&blockGrid, time, nRows, nCols, version);
+	game(&blockGrid, time, nRows, nCols, version, exec_time);
 
 	//-----------------------------------------------------------------------------------------------
 

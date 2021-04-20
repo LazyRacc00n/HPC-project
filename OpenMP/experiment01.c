@@ -89,6 +89,7 @@ void game(int w, int h, int t, int threads) {
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
+	free(fileName);
 }
  
  
@@ -119,8 +120,5 @@ int main(int c, char **v) {
 	// execute the game code
 	game(w, h, t, threads);
 
-	// check the actual number of threads used by the program
-	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, actual_threads);
-	
 }
 

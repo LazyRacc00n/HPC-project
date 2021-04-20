@@ -71,15 +71,16 @@ void show(unsigned int **univ, int w, int h) {
 }
 
 
-void swap_grids(unsigned int ***old, unsigned int ***new) {
-    bool **temp = *old;
+void swap(unsigned int ***old, unsigned int ***new) {
+    unsigned int **temp = *old;
 
-    *old = *new;
+    old = new;
     *new = temp;
+
 }
 
 // Allocate a matrix so as to have elements contiguos in memory
-unsigned int **allocate_empty_grid(int rows, int cols)
+unsigned int ** allocate_empty_grid(int rows, int cols)
 {
 
 	int i;
@@ -107,14 +108,10 @@ void free_grid(unsigned int **grid){
 * or overcrowding 
 */
 void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
-	//unsigned (*univ)[w] = u;
-	//unsigned new[h][w];
-
-	#pragma omp parallel shared(new, univ) 
-	{
+	
 		int x,y,x1,y1,n;
         
-		#pragma omp for  schedule(static) 
+		#pragma omp parallel for  schedule(static) shared(new, univ) private(x,x1,y1,n)
 		for ( y = 0; y < h; y++) 
         	for ( x = 0; x < w; x++) {
 		    	n = 0;
@@ -130,14 +127,9 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 		
 	    }
 
-		// update the board
-		//#pragma omp for schedule(static) collapse(2) 
-		//for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
-
-	}
-
 	swap(&univ, &new);
-
+	
+	
 }
  
 
@@ -187,9 +179,8 @@ void game(int w, int h, int t, int threads) {
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
-	//free_grid(univ);
-	//free_grid(univ_prime);
-
+	free_grid(univ);
+	free_grid(univ_prime);
 
 
 }
@@ -222,8 +213,6 @@ int main(int c, char **v) {
 	// execute the game code
 	game(w, h, t, threads);
 
-	// check the actual number of threads used by the program
-	printf("Number of threads requested is %d \n Number of threads actually created is %d", threads, omp_get_num_threads());
-	
+		
 }
 
