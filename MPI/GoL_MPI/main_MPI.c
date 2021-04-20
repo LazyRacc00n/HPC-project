@@ -176,7 +176,6 @@ void display_v2(struct grid_block *gridBlock, int nRows, int nCols, MPI_Datatype
 	{
 		//if I'm the root: print and receive the blocks of the other nodes
 		//print_buffer(gridBlock->block)
-
 		if (nCols > 1000 && (t == 0 || t == gridBlock->time_step - 1))
 			printbig_block(gridBlock, t, filename);
 		else if (nCols <= 1000)
@@ -285,9 +284,9 @@ void print_buffer(struct grid_block *gridBlock, unsigned int *buffer)
 	}
 }
 
-// Ghost Rows: In order to compute the envolve we need to send the first row (ghost) to the upper neighbor and the last
-// row to the lower neighbour. (Try to use dataype to send and check if it improve performance)
-// Ghost Columns: Copy fisrt column to the last ghost columns
+// Ghost Rows: In order to compute the envolve we need to send the first row to the upper neighbor and the last
+// row to the lower neighbour, thanks to the use of the top and bottom ghost rows.
+
 
 void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, int nRows, int nCols, MPI_Datatype row_block_type)
 {
@@ -392,15 +391,10 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int vers
 		evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
 
 		if (version == 1)
-		{
 			display_v1(gridBlock, nRows, nCols, row_block_without_ghost, t);
-		}
 		else
-		{
-
 			display_v2(gridBlock, nRows, nCols, block_type, t);
 		}
-	}
 
 	//synchronize all the nodes to end the time
 	MPI_Barrier(MPI_COMM_WORLD);
@@ -466,7 +460,6 @@ int main(int argc, char **argv)
 
 	if (version <= 0 || version > 2)
 	{
-
 		printf("\n\nVersion not exists ! It will be executed with the version 1!\n\n");
 		version = 1;
 	}
@@ -475,7 +468,6 @@ int main(int argc, char **argv)
 
 	if (err != 0)
 	{
-
 		printf("\nError in MPI initialization!\n");
 		MPI_Abort(MPI_COMM_WORLD, err);
 	}

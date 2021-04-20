@@ -4,26 +4,80 @@
  * https://www.geeksforgeeks.org/conways-game-life-python-implementation/
  *
  */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdbool.h> // boolean type
 #include <omp.h> // Enable OpenMP parallelization
 
-#include "../utils.h"
+//#include "../utils.h"clear
 
 
-/*void swap(unsigned int *** a, unsigned int *** b)
-{
-    unsigned ** tmp = *a;
-    *a = *b;
-    *b = tmp;
+
+// compute the elapsed wall-clock time between two time intervals. in ms
+double elapsed_wtime(struct timeval start, struct timeval end) {
+
+    return (double)((end.tv_sec * 1000000 + end.tv_usec) - 
+		       (start.tv_sec * 1000000 + start.tv_usec))/1000;
+
+   
 }
-*/
 
 
-void swap(unsigned int ***old, unsigned int ***new) {
+void writeFile(char* fileName, bool first, double time , int n_core){
+    FILE *f;
+
+
+    if(first)   f = fopen(fileName, "w" );
+    else f = fopen(fileName, "a" ); 
+
+    // write file
+    fprintf(f,"%d,%f",n_core , time);
+
+    fprintf(f,"\n");
+	fflush(f);
+	fclose(f);
+    
+}
+
+void printbig(unsigned int **univ, int w, int h, int z) {
+	int x,y;
+	//int (*univ)[w] = u;
 	
-    unsigned int **temp = *old;
+	FILE *f;
+	
+	if(z == 0) f = fopen("glife.txt", "w" );
+	else f = fopen("glife.txt", "a" );
+	
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) fprintf (f,"%c", univ[y][x] ? 'x' : ' ');
+		fprintf(f,"\n");
+	}
+	fprintf(f,"\n\n\n\n\n\n ******************************************************************************************** \n\n\n\n\n\n");
+	fflush(f);
+	fclose(f);
+}
+
+void show(unsigned int **univ, int w, int h) {
+	int x,y;
+	//int (*univ)[w] = u;
+	printf("\033[H");
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) printf(univ[y][x] ? "\033[07m  \033[m" : "  ");
+		printf("\033[E");
+	}
+	fflush(stdout);
+	usleep(200000);
+}
+
+
+void swap(void **old, void **new) {
+	
+    void *temp = *old;
 
     *old = *new;
-    *new = temp;
+    new = temp;
 }
 
 // Allocate a matrix so as to have elements contiguos in memory
@@ -58,7 +112,7 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 	//unsigned (*univ)[w] = u;
 	//unsigned new[h][w];
 
-	#pragma omp parallel shared(new, univ) 
+	#pragma omp parallel //shared(new, univ) 
 	{
 		int x,y,x1,y1,n;
         
@@ -77,13 +131,14 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 		    new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
 		
 	    }
-	
+
 		// update the board
 		//#pragma omp for schedule(static) collapse(2) 
 		//for ( y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
+
 	}
 
-	swap(univ, new);
+	swap((void*)&univ, (void*)&new);
 	
 	
 }
@@ -135,8 +190,8 @@ void game(int w, int h, int t, int threads) {
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
-	free_grid(univ);
-	free_grid(univ_prime);
+	//free_grid(univ);
+	//free_grid(univ_prime);
 
 
 
