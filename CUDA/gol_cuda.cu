@@ -39,7 +39,7 @@ void printbig(void *u, int w, int h, int z) {
 }
 
 
-
+// TODO: CONVERT IN KERNEL
 void evolve(void *u, int w, int h) {
 	unsigned (*univ)[w] = u;
 	unsigned new[h][w];
