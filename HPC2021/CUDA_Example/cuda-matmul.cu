@@ -144,6 +144,24 @@ int check_result( const float *r, int n )
 
 int main( int argc, char* argv[] ) 
 {
+
+    int devices = 0; 
+
+cudaError_t err = cudaGetDeviceCount(&devices); 
+
+if (devices > 0 && err == cudaSuccess) 
+{ 
+    // Run CPU+GPU code
+    printf("\n\nSI GPU!!\n\n");
+} 
+else
+{ 
+    printf("\n\nNO GPU!!\n\n");
+    // Run CPU only code
+} 
+
+
+
     float *p, *q, *r;	          /* host copies of p, q, r */ 
     float *d_p, *d_q, *d_r;	  /* device copies of p, q, r */
     int N = 512;
