@@ -72,12 +72,14 @@ void show(unsigned int **univ, int w, int h) {
 
 
 void swap(unsigned int ***old, unsigned int ***new) {
+	
     unsigned int **temp = *old;
 
-    old = new;
+    *old = *new;
     *new = temp;
 
 }
+
 
 // Allocate a matrix so as to have elements contiguos in memory
 unsigned int ** allocate_empty_grid(int rows, int cols)
@@ -126,36 +128,34 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 		    new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
 		
 	    }
-
-	swap(&univ, &new);
-	
-	
 }
  
 
 void game(int w, int h, int t, int threads) {
 	int x,y,z;
-	unsigned int **univ = allocate_empty_grid(h, w);
-	unsigned int **univ_prime = allocate_empty_grid(h, w);
+	unsigned int **current_gen = allocate_empty_grid(h, w);
+	unsigned int **next_gen = allocate_empty_grid(h, w);
 
 	struct timeval start, end;
 	double tot_time = 0.;
 
 	//initialization
 	srand(10);
-	for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
+	for (x = 0; x < w; x++) for (y = 0; y < h; y++) current_gen[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 	
-	if (x > 1000) printbig(univ, w, h,0);
+	if (x > 1000) printbig(current_gen, w, h,0);
 	
 	for(z = 0; z < t;z++) {
 
-		if (x <= 1000) show(univ, w, h);
+		if (x <= 1000) show(current_gen, w, h);
 		
 		// get starting time at iteration z
 		gettimeofday(&start, NULL);
 		
 		// lets evolve the current generation
-		evolve(univ, univ_prime, w, h);
+		evolve(current_gen, next_gen, w, h);
+		// the next generation is now the current and used in the next iteration
+		swap(&current_gen, &next_gen); 
 
 		// get ending time of iteration z
 		gettimeofday(&end, NULL);
@@ -170,7 +170,7 @@ void game(int w, int h, int t, int threads) {
 		}
 	}
 	
-	if (x > 1000) printbig(univ, w, h,1);
+	if (x > 1000) printbig(current_gen, w, h,1);
 
 
     // Allocates storage
@@ -179,8 +179,8 @@ void game(int w, int h, int t, int threads) {
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
-	free_grid(univ);
-	free_grid(univ_prime);
+	free_grid(current_gen);
+	free_grid(next_gen);
 
 
 }

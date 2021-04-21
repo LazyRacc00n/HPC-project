@@ -28,6 +28,15 @@ void free_grid(unsigned int **grid)
 	free(grid);
 }
 
+void swap(unsigned int ***old, unsigned int ***new)
+{
+
+	unsigned int **temp = *old;
+
+	*old = *new;
+	*new = temp;
+}
+
 void print_block(struct grid_block *gridBlock)
 {
 	int x, y;
@@ -363,9 +372,11 @@ void evolve_block(struct grid_block *gridBlock, unsigned int **next_gridBlock, i
 		}
 	}
 
+	
 	for (i = 1; i < gridBlock->numRows_ghost - 1; i++)
 		for (j = 1; j < gridBlock->numCols_ghost - 1; j++)
 			gridBlock->block[i][j] = next_gridBlock[i][j];
+	
 }
 
 // call envolve and diaplay the evolution
@@ -404,8 +415,7 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int vers
 			gettimeofday(&start, NULL);
 
 		evolve_block(gridBlock, next_gridBlock, nRows, nCols, row_block_type);
-
-		
+		//swap(&gridBlock->block, &next_gridBlock);
 
 		if (version == 1)
 			display_v1(gridBlock, nRows, nCols, row_block_without_ghost, t, exec_time);
@@ -419,20 +429,18 @@ void game(struct grid_block *gridBlock, int time, int nRows, int nCols, int vers
 			partial_time = (double)elapsed_wtime(start, end);
 			tot_time += partial_time;
 		}
-
-		
 	}
 
 	if (gridBlock->rank == 0)
 	{
 
-			char *fileName = (char *)malloc(50 * sizeof(char));
-			if (version == 1)
-				sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V1.csv", nCols, nRows, time);
-			else
-				sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V2.csv", nCols, nRows, time);
+		char *fileName = (char *)malloc(50 * sizeof(char));
+		if (version == 1)
+			sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V1.csv", nCols, nRows, time);
+		else
+			sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V2.csv", nCols, nRows, time);
 
-			writeFile(fileName, gridBlock->mpi_size == 2, tot_time, gridBlock->mpi_size);
+		writeFile(fileName, gridBlock->mpi_size == 2, tot_time, gridBlock->mpi_size);
 	}
 
 	// free the derived datatype
@@ -477,7 +485,7 @@ int main(int argc, char **argv)
 
 	if (argc > 4)
 		version = atoi(argv[4]);
-	
+
 	if (argc > 5)
 		exec_time = (bool)atoi(argv[5]);
 

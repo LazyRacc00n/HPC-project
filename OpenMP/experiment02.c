@@ -93,7 +93,6 @@ void game(int w, int h, int t, int threads) {
 	if (x > 1000 && z%2 == 0) printbig(univ, w, h,1);
 	else if (x > 1000 && z%2 != 0) printbig(univ_prime, w, h,1);
 
-	printf("hallo");
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
 	sprintf(fileName, "Results/Exp02-OMP-%d-%d-%d.csv", w, h, t);
