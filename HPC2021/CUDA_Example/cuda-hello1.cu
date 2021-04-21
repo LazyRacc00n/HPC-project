@@ -23,6 +23,22 @@ __global__ void mykernel( void ) { }
 
 int main( void )
 {
+    int devices = 0; 
+
+    cudaError_t err = cudaGetDeviceCount(&devices); 
+
+    if (devices > 0 && err == cudaSuccess) 
+    { 
+        // Run CPU+GPU code
+        printf("\n\nSI GPU!!\n\n");
+    } 
+    else
+    {  
+        printf("\n\nNO GPU!!\n\n");
+        // Run CPU only code
+    } 
+    
+    
     mykernel<<<1,1>>>( );
     printf("Hello, world!\n");
     return 0;

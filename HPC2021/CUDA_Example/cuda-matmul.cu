@@ -63,11 +63,13 @@ __global__ void matmulb( const float *p, const float *q, float *r, int n )
 {
     __shared__ float local_p[BLKDIM][BLKDIM];
     __shared__ float local_q[BLKDIM][BLKDIM];
+    
     const int bx = blockIdx.x, by = blockIdx.y;
     const int tx = threadIdx.x, ty = threadIdx.y;
     const int i = by * BLKDIM + ty;
     const int j = bx * BLKDIM + tx;
     float v = 0.0; int m, k;
+    
     for (m = 0; m < n; m += BLKDIM) { /* loop over tiles */
         local_p[ty][tx] = p[i*n + (m + tx)];
         local_q[ty][tx] = q[(m + ty)*n + j];
@@ -155,12 +157,10 @@ if (devices > 0 && err == cudaSuccess)
     printf("\n\nSI GPU!!\n\n");
 } 
 else
-{ 
+{  
     printf("\n\nNO GPU!!\n\n");
     // Run CPU only code
 } 
-
-
 
     float *p, *q, *r;	          /* host copies of p, q, r */ 
     float *d_p, *d_q, *d_r;	  /* device copies of p, q, r */

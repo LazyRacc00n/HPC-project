@@ -1,9 +1,10 @@
 //WEWE
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <time.h>
+//#include <unistd.h> ONLY UNIX SYSTEM
 
-//TODO:TO MODIFY
+//TODO: ORIGINAL CODE --> TO MODIFY
  
 void show(void *u, int w, int h) {
 	int x,y;
