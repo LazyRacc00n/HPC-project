@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+//TODO:TO MODIFY
  
 void show(void *u, int w, int h) {
 	int x,y;
