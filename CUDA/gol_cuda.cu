@@ -63,6 +63,11 @@ void evolve(void *u, int w, int h) {
 	for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
 }
  
+
+
+__global__ void cuda_evolve()
+
+
  
  
 void game(int w, int h, int t) {
