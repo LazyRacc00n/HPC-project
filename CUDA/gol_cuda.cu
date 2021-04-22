@@ -8,11 +8,6 @@
 #define DEAD 0
 
 
-
-
-
-
-
 //TODO: TO MODIFY
 void show(void *u, int w, int h) {
 	int x,y;
@@ -47,6 +42,14 @@ void printbig(void *u, int w, int h, int z) {
 }
 
 
+int compute_neighbor(int i, int j, int nRows, int nCols){
+
+	//TODO: to verify
+	int x = (i + nRows) % nRows;
+	int y = (j + nCols) % nCols;
+	return  x * nCols + y;
+}
+
 
 //int tid = threadIdx.x + blockIdx.x * blockDim.x;
 // number of threds: ( N + number_thred_per_block) / number_thred_per_block
@@ -54,7 +57,7 @@ void printbig(void *u, int w, int h, int z) {
 //MEMORY COALESCED ACCESS --> improve performaze taking per rows
 
 /*A 2D matrix is stored as 1D in memory:
-	- in row-major layout, the element(x,y) ca be adressed as x*width + y
+	- in row-major layout, the element(x,y) ca be adressed as x*width+ y
 	- A grid is composed by block, each block is composed by threads. All threads in same block have same block index.
 	- to esure that  the extra threads do not do any work --> if(row<width && col<width) { --> written in the kernel
 																then do work
@@ -65,15 +68,38 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 	const int bx = blockIdx.x, by = blockIdx.y;
     const int tx = threadIdx.x, ty = threadIdx.y;
     
-    const int i = by * nRows + ty;
-    const int j = bx * nCols + tx;
+	const int i = bx * nCols + tx;
+    const int j = by * nRows + ty;
+    
 
-	if( row < nRows && col < nCols){
+	int x,y;
+
+	if( i < nRows && j < nCols){
 
 		// Envolve computation
 		// TODO: count how many neighbors are alive
+		int nAliveNeig = 0;
 
+		// index --> i * nCols + j
 		
+		int top_left =    compute_neighbor(i-1, j-1, nRows, nCols);
+		int left = 		  compute_neighbor(i, j-1, nRows, nCols);
+		int bottom_left = compute_neighbor(i+1, j-1, nRows, nCols);
+		int top = 		  compute_neighbor(i-1, j, nRows, nCols);
+		int top_right =   compute_neighbor(i-1, j+1, nRows, nCols);
+		int right =       compute_neighbor(i, j+1, nRows, nCols);
+		int bottom_right= compute_neighbor(i+1, j+1, nRows, nCols);
+		int bottom =      compute_neighbor(i+1, j, nRows, nCols);
+
+		nAliveNeig = top_left + left + bottom_left + top + top_right + right + bottom_right + bottom;
+		
+		/*
+		nAliveNeig = curr_grid[(i - 1) * nCol + (j - 1)  ] + curr_grid[(i - 1) * nCol + (j)  ] + curr_grid[(i - 1) * nCol + (j + 1)  ] 
+					 curr_grid[(i ) * nCol + (j - 1)  ]  + curr_grid[(i ) * nCol + (j + 1)  ] 
+					 curr_grid[(i + 1) * nCol + (j - 1)  ] + curr_grid[(i + 1) * nCol + (j)  ] + curr_grid[(i + 1) * nCol + (j + 1)  ]
+		
+		*/
+
 		// TODO: store computation in next_grid
 	
 	
@@ -111,8 +137,8 @@ void game(int nRows, int nCols, int timestep ){
 
 
 
-	//TODO: free memory GPU
-	//TODO:
+	//TODO: free GPU memory
+	//TODO: free CPU memory
 }
 
 
