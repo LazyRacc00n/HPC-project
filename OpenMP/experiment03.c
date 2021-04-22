@@ -11,7 +11,6 @@
 #include <stdbool.h> // boolean type
 #include <omp.h> // Enable OpenMP parallelization
 
-//#include "../utils.h"clear
 
 
 
