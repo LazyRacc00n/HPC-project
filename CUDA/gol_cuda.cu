@@ -85,6 +85,9 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 	const int bx = blockIdx.x, by = blockIdx.y;
     const int tx = threadIdx.x, ty = threadIdx.y;
     
+
+	// TODO: QUEL BLOCK_DIM in matmul è la dimensione della matrice o il numero di thread?
+	// da verificare ma penso sia la seconda.
 	const int i = bx * nCols + tx;
     const int j = by * nRows + ty;
 
@@ -96,7 +99,7 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 
 		// index --> i * nCols + j
 		
-		//calculate the neighbors
+		//calculate the neighbors OH MADONNA GIà è SOLO PI§ disordinato xdxdxdxd
 		int top_left =    compute_neighbor(i-1, j-1, nRows, nCols);
 		int left = 		  compute_neighbor(i, j-1, nRows, nCols);
 		int bottom_left = compute_neighbor(i+1, j-1, nRows, nCols);
@@ -107,22 +110,17 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 		int bottom =      compute_neighbor(i+1, j, nRows, nCols);
 
 		//calculate how many neighbors around 3x3 are alive
-		nAliveNeig = top_left + left + bottom_left + top + top_right + right + bottom_right + bottom;
+		nAliveNeig = curr_grid[top_left] + curr_grid[left] + curr_grid[bottom_left] \
+					+	curr_grid[top] + curr_grid[top_right] + curr_grid[right] 	\ 
+					+ 	curr_grid[bottom_right] + curr_grid[bottom];
 		
-		/*
-		nAliveNeig = curr_grid[(i - 1) * nCol + (j - 1)  ] + curr_grid[(i - 1) * nCol + (j)  ] + curr_grid[(i - 1) * nCol + (j + 1)  ] 
-					 curr_grid[(i ) * nCol + (j - 1)  ]  + curr_grid[(i ) * nCol + (j + 1)  ] 
-					 curr_grid[(i + 1) * nCol + (j - 1)  ] + curr_grid[(i + 1) * nCol + (j)  ] + curr_grid[(i + 1) * nCol + (j + 1)  ]
+		// store computation in next_grid
+		next_grid[ i * nCols + j] = ( nAliveNeig == 3 || (nAliveNeig == 2 && curr_grid[ i * nCols + j]));
 		
-		*/
-
-		// TODO: store computation in next_grid
-	
-	
 	}
 
 
-	//TODO: swap cur_grid and next_grid
+	
 
 }
 
@@ -130,23 +128,37 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 void game(int nRows, int nCols, int timestep ){
 
 	int t=0;
-	unsigned int **curr_grid = allocate_empty_grid(nRows, nCols) , **next_grid = allocate_empty_grid(nRows, nCols);
-	size_t grid_size = nRows * nCols * sizeof(unsigned int);
+	struct timeval start, end;
+	double tot_time = 0.;
 
 	//TODO: allocation in CPU
+	unsigned int **curr_grid = allocate_empty_grid(nRows, nCols) , **next_grid = allocate_empty_grid(nRows, nCols); 
 
 	//TODO: allocation in GPU
+	size_t grid_size = nRows * nCols * sizeof(unsigned int);
 
+	unsigned int * cuda_curr_grid, cuda_next_grid;
+
+	//TODO: calculate how many block and how many thread per block
+	
+	//dim3 block(nRows, nRows);
+    //dim3 grid((N+BLKDIM-1)/BLKDIM, (N+BLKDIM-1)/BLKDIM);
 	
 	//TODO: curr grid initialization ( possibility to do it also with cuda? )
 
-	//TODO: copy in from HOST to DEVICE
+	//TODO: copy in from HOST to DEVICE --> cudaMemcpy( dest, src, cudaMemcpyHostToDevice)
 
 
 	for(t=0; t < timestep; t++){
 			
 			//TODO: MISSING STUFF
 			// cuda_envolve << nThreadPerBlock, nBlock >> ()
+
+			//TODO: cudaDeviceSynchronize()
+
+			//TODO: swap cur_grid and next_grid
+
+			
 		
 	}
 
