@@ -8,6 +8,20 @@
 #define DEAD 0
 
 
+// Allocate a matrix so as to have elements contiguos in memory
+unsigned int ** allocate_empty_grid(int rows, int cols)
+{
+
+	int i;
+	//allocate memory for an array of pointers and then allocate memory for every row
+	unsigned int *grid = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
+	unsigned int **array = (unsigned int **)malloc(rows*sizeof(unsigned int*));
+	for (i = 0; i < rows; i++)
+		array[i] = &(grid[cols*i]);
+
+	return array;
+}
+
 //TODO: TO MODIFY
 void show(void *u, int w, int h) {
 	int x,y;
@@ -116,11 +130,13 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 void game(int nRows, int nCols, int timestep ){
 
 	int t=0;
-	unsigned int *curr_grid, *next_grid;
+	unsigned int **curr_grid = allocate_empty_grid(nRows, nCols) , **next_grid = allocate_empty_grid(nRows, nCols);
+	size_t grid_size = nRows * nCols * sizeof(unsigned int);
 
 	//TODO: allocation in CPU
 
 	//TODO: allocation in GPU
+
 	
 	//TODO: curr grid initialization ( possibility to do it also with cuda? )
 
