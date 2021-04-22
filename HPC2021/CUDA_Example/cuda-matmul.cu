@@ -82,6 +82,8 @@ __global__ void matmulb( const float *p, const float *q, float *r, int n )
     r[i*n + j] = v; /* write back to global memory */
 }
 
+
+
 __device__ int cuda_min(int a, int b)
 {
     return (a < b ? a : b);

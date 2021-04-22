@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-//#include <unistd.h> ONLY UNIX SYSTEM
+//#include <unistd.h> ONLY UNIX SYSTEM TODO: decomment on the cluster
 
 //TODO: ORIGINAL CODE --> TO MODIFY
  
@@ -15,9 +15,8 @@ void show(void *u, int w, int h) {
 		printf("\033[E");
 	}
 	fflush(stdout);
-	usleep(200000);
+	//usleep(200000);
 }
-
 
 
 void printbig(void *u, int w, int h, int z) {
@@ -64,16 +63,24 @@ void evolve(void *u, int w, int h) {
 }
  
 
+//int tid = threadIdx.x + blockIdx.x * blockDim.x;
+// number of threds: ( N + number_thred_per_block) / number_thred_per_block
 
-__global__ void cuda_evolve()
+//MEMORY COALESCED ACCESS --> improve performaze taking per rows
+
+__global__ void cuda_evolve(){
+
+}
 
 
  
+
+/* OLD GAME
  
 void game(int w, int h, int t) {
 	int x,y,z;
 	unsigned univ[h][w];
-	struct timeval start, end;
+	//struct timeval start, end; TODO: decomment on cluster
 	
 	//initialization
 	//srand(10);
@@ -83,11 +90,11 @@ void game(int w, int h, int t) {
 	
 	for(z = 0; z < t;z++) {
 		if (x <= 1000) show(univ, w, h);
-		else gettimeofday(&start, NULL);
+		//else gettimeofday(&start, NULL);TODO: decomment on cluster
 		
 		evolve(univ, w, h);
 		if (x > 1000) {
-			gettimeofday(&end, NULL);
+			gettimeofday(&end, NULL);TODO: decomment on cluster
 		    printf("Iteration %d is : %ld ms\n", z,
 		       ((end.tv_sec * 1000000 + end.tv_usec) - 
 		       (start.tv_sec * 1000000 + start.tv_usec))/1000 );
@@ -95,7 +102,7 @@ void game(int w, int h, int t) {
 	}
 	if (x > 1000) printbig(univ, w, h,1);
 }
- 
+ */
  
  
 int main(int c, char **v) {
@@ -109,6 +116,6 @@ int main(int c, char **v) {
 
 
 	
-	game(w, h, t);
+	//game(w, h, t);
 }
 
