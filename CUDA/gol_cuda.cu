@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-//#include <unistd.h> ONLY UNIX SYSTEM TODO: decomment on the cluster
+#include <unistd.h> //ONLY UNIX SYSTEM TODO: uncomment on the cluster
 
 //TODO: ORIGINAL CODE --> TO MODIFY
  
@@ -68,7 +68,24 @@ void evolve(void *u, int w, int h) {
 
 //MEMORY COALESCED ACCESS --> improve performaze taking per rows
 
-__global__ void cuda_evolve(){
+/*A 2D matrix is stored as 1D in memory:
+	- in row-major layout, the element(x,y) ca be adressed as x*width + y
+	- A grid is composed by block, each block is composed by threads. All threads in same block have same block index.
+	- to esure that  the extra threads do not do any work --> if(row<width && col<width) { --> written in the kernel
+																then do work
+															  }
+
+*/
+__global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, int nRows, int nCols){
+
+
+	int row = blockIdx.x*blockDim.x + threadIdx.x;
+	int col = blockIdx.x*blockDim.x + threadIdx.x;
+
+	if( row < nRows && col < nCols){
+
+		// Envolve computation
+	}
 
 }
 
@@ -80,7 +97,7 @@ __global__ void cuda_evolve(){
 void game(int w, int h, int t) {
 	int x,y,z;
 	unsigned univ[h][w];
-	//struct timeval start, end; TODO: decomment on cluster
+	//struct timeval start, end; 
 	
 	//initialization
 	//srand(10);
@@ -90,11 +107,11 @@ void game(int w, int h, int t) {
 	
 	for(z = 0; z < t;z++) {
 		if (x <= 1000) show(univ, w, h);
-		//else gettimeofday(&start, NULL);TODO: decomment on cluster
+		//else gettimeofday(&start, NULL);
 		
 		evolve(univ, w, h);
 		if (x > 1000) {
-			gettimeofday(&end, NULL);TODO: decomment on cluster
+			gettimeofday(&end, NULL);
 		    printf("Iteration %d is : %ld ms\n", z,
 		       ((end.tv_sec * 1000000 + end.tv_usec) - 
 		       (start.tv_sec * 1000000 + start.tv_usec))/1000 );
