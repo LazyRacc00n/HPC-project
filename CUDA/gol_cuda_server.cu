@@ -1,3 +1,4 @@
+
 //WEWE
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,9 +8,9 @@
 #define ALIVE 1
 #define DEAD 0
 
-void free_gen(unsigned int **gen){
+void free_gen(unsigned int *gen){
 
-        free(gen[0]);
+        //free(gen[0]);
         free(gen);
 }
 
@@ -23,43 +24,38 @@ void swap(unsigned int **old, unsigned int ** new_) {
 }
 
 // Allocate a matrix so as to have elements contiguos in memory
-unsigned int ** allocate_empty_gen(int rows, int cols)
+unsigned int * allocate_empty_gen(int rows, int cols)
 {
 
-        int i;
+        //int i;
         //allocate memory for an array of pointers and then allocate memory for every row
         unsigned int *gen = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
         unsigned int **array = (unsigned int **)malloc(rows*sizeof(unsigned int*));
-        for (i = 0; i < rows; i++)
+        /*for (i = 0; i < rows; i++)
                 array[i] = &(gen[cols*i]);
 
-        return array;
+        return array;*/
+        return gen;
+
 }
 
 
-void show(unsigned int *res, int gen_size, int nCols ) {
 
-        int i= nCols, j;
+void show(unsigned int *curr_gen, int nRows, int nCols) {
+
+        int i,j;
 
         printf("\033[H");
-
-        for (j = 0; j < gen_size; j++){
-
-                printf(res[j] ? "\033[07m  \033[m" : "  ");
-
-                if( i < gen_size){
-                        printf("\033[E");
-                        i+= nCols;
-                }
+        for (i = 0; i < nRows; i++) {
+                for (j = 0; j < nCols; j++) printf(curr_gen[i* nCols + j] ? "\033[07m  \033[m" : "  ");
+                printf("\033[E");
         }
-        printf("\033[E");
-
         fflush(stdout);
         //usleep(200000);
 }
 
 
-void printbig(unsigned int **curr_gen, int nRows, int nCols, int z) {
+void printbig(unsigned int *curr_gen, int nRows, int nCols, int z) {
 
         int i,j;
 
@@ -69,7 +65,7 @@ void printbig(unsigned int **curr_gen, int nRows, int nCols, int z) {
         else f = fopen("glife_cuda.txt", "a" );
 
         for (i = 0; i < nRows; i++) {
-                for (j = 0; j < nCols; j++) fprintf (f,"%c", curr_gen[i][j] ? 'x' : ' ');
+                for (j = 0; j < nCols; j++) fprintf (f,"%c", curr_gen[i* nCols + j] ? 'x' : ' ');
                 fprintf(f,"\n");
         }
 
@@ -114,8 +110,8 @@ void writeFile(char* fileName, bool first, double time , int n_core){
 __device__ int compute_neighbor(int i, int j, int nRows, int nCols){
 
         // Guarda come vengono gestiti i bordi nell'originale
-        int x = i % nRows;
-        int y = j % nCols;
+        int x = (i + nRows) % nRows;
+        int y = (j + nCols) % nCols;
         return  x * nCols + y;
 }
 
@@ -145,7 +141,7 @@ __global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int 
 
 
         //to esure that  the extra threads do not do any work
-        if( i >= nRows || j >= nCols ) return;
+        if( !( i < nRows && j < nCols) ) return;
 
 
 
@@ -187,12 +183,12 @@ void game(int nRows, int nCols, int timestep, int block_size ){
         double tot_time = 0.;
 
         //allocation in CPU and initialization
-        unsigned int ** curr_gen = allocate_empty_gen(nRows, nCols);
-        unsigned int ** next_gen = allocate_empty_gen(nRows, nCols);
+        unsigned int * curr_gen = allocate_empty_gen(nRows, nCols);
+        unsigned int * next_gen = allocate_empty_gen(nRows, nCols);
 
 
         //srand(10);
-        for (x = 0; x < nRows; x++) for (y = 0; y < nCols; y++) curr_gen[x][y] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
+        for (x = 0; x < nRows; x++) for (y = 0; y < nCols; y++) curr_gen[x * nCols +y] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 
         //allocation in GPU
         size_t gen_size = nRows * nCols * sizeof(unsigned int);
@@ -206,12 +202,13 @@ void game(int nRows, int nCols, int timestep, int block_size ){
 
         // copy matrix from the host (CPU) to the device (GPU)
         cudaMemcpy(cuda_curr_gen, curr_gen, gen_size, cudaMemcpyHostToDevice);
-        //cudaMemset(cuda_next_gen, DEAD, gen_size); inutile secondo me TODO: vedere se eliminare sta riga, anche secondo me, anche second o me
+        //cudaMemset(cuda_next_gen, DEAD, gen_size); //inutile secondo me TODO: vedere se eliminare sta riga, anche secondo me, anche second o me
 
         //calculate how many block and how many thread per block
         dim3 num_threads(block_size, block_size), num_blocks;
     num_blocks.x = ( nCols + num_threads.x - 1)/num_threads.x;
     num_blocks.y = ( nRows + num_threads.y - 1)/num_threads.y;
+
 
 
         for(z=0; z < timestep; z++){
@@ -246,7 +243,7 @@ void game(int nRows, int nCols, int timestep, int block_size ){
                         }else{
 
                                 cudaMemcpy(res, cuda_curr_gen, gen_size, cudaMemcpyDeviceToHost);
-                                show(res, gen_size, nCols);
+                                show(res, nRows, nCols);
 
                         }
 
@@ -288,4 +285,8 @@ int main(int c, char **v) {
 
         game(w, h, t, block_size);
 }
+
+
+
+
 
