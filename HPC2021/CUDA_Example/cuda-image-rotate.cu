@@ -150,7 +150,7 @@ void rotate_shared( unsigned char *orig, unsigned char *rotated, int n )
         buf[local_x][BLKDIM-1-local_y] = orig[n*y+x];
         __syncthreads();
 
-        const int dest_x = (gridDim.y - 1 - blockIdx.y) * BLKDIM + threadIdx.x;
+        const int dest_x = (genDim.y - 1 - blockIdx.y) * BLKDIM + threadIdx.x;
         const int dest_y = blockIdx.x * BLKDIM + threadIdx.y;
         rotated[n*dest_y + dest_x] = buf[local_y][local_x];
     }
@@ -198,15 +198,15 @@ int main( int argc, char* argv[] )
     /* Copy image to the device */
     cudaSafeCall( cudaMemcpy(d_orig, img.bmap, size, cudaMemcpyHostToDevice) );
 
-    /* Define block and grid sizes */
+    /* Define block and gen sizes */
     const dim3 block(BLKDIM, BLKDIM);
-    const dim3 grid((img.width + BLKDIM - 1)/BLKDIM, (img.height + BLKDIM - 1)/BLKDIM);
+    const dim3 gen((img.width + BLKDIM - 1)/BLKDIM, (img.height + BLKDIM - 1)/BLKDIM);
 
     fprintf(stderr, "\nPerforming %d rotations (img size %dx%d)\n\n", nrotations, img.width, img.height);
     
     double tstart = hpc_gettime();
     for (int i=0; i<nrotations; i++) {
-        rotate<<< grid, block >>>( d_orig, d_new, n );
+        rotate<<< gen, block >>>( d_orig, d_new, n );
         cudaCheckError(); /* Check whether the kernel completed succesfully */
         tmp = d_orig; d_orig = d_new; d_new = tmp;
     }
@@ -223,7 +223,7 @@ int main( int argc, char* argv[] )
 
     tstart = hpc_gettime();
     for (int i=0; i<nrotations; i++) {
-        rotate_shared<<< grid, block >>>( d_orig, d_new, n );
+        rotate_shared<<< gen, block >>>( d_orig, d_new, n );
         cudaCheckError();
         tmp = d_orig; d_orig = d_new; d_new = tmp;
     }

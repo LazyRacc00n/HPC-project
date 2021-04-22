@@ -37,11 +37,11 @@
 #include <stdlib.h>
 #include <time.h> /* for time() */
 
-/* grid size (excluding ghost cells) */
+/* gen size (excluding ghost cells) */
 #define SIZE 256
 
-int cur = 0; /* index of current grid (must be 0 or 1) */
-unsigned char grid[2][SIZE+2][SIZE+2];
+int cur = 0; /* index of current gen (must be 0 or 1) */
+unsigned char gen[2][SIZE+2][SIZE+2];
 
 /* some useful constants; starting and ending rows/columns of the domain */
 const int ISTART = 1;
@@ -68,27 +68,27 @@ const int JEND   = SIZE;
 
  */
 
-/* copy the sides of current grid to the ghost cells. This function
-   uses the global variables cur and grid. grid[cur] is modified.*/
+/* copy the sides of current gen to the ghost cells. This function
+   uses the global variables cur and gen. gen[cur] is modified.*/
 #if 1
 void copy_sides( void )
 {
     int i, j;
     /* copy top and bottom (one should better use memcpy() ) */
     for (j=JSTART; j<JEND+1; j++) {
-        grid[cur][ISTART-1][j] = grid[cur][IEND  ][j];
-        grid[cur][IEND+1  ][j] = grid[cur][ISTART][j];
+        gen[cur][ISTART-1][j] = gen[cur][IEND  ][j];
+        gen[cur][IEND+1  ][j] = gen[cur][ISTART][j];
     }
     /* copy left and right */
     for (i=ISTART; i<IEND+1; i++) {
-        grid[cur][i][JSTART-1] = grid[cur][i][JEND  ];
-        grid[cur][i][JEND+1  ] = grid[cur][i][JSTART];
+        gen[cur][i][JSTART-1] = gen[cur][i][JEND  ];
+        gen[cur][i][JEND+1  ] = gen[cur][i][JSTART];
     }
     /* copy corners */
-    grid[cur][ISTART-1][JSTART-1] = grid[cur][IEND  ][JEND  ];
-    grid[cur][ISTART-1][JEND+1  ] = grid[cur][IEND  ][JSTART];
-    grid[cur][IEND+1  ][JSTART-1] = grid[cur][ISTART][JEND  ];
-    grid[cur][IEND+1  ][JEND+1  ] = grid[cur][ISTART][JSTART];
+    gen[cur][ISTART-1][JSTART-1] = gen[cur][IEND  ][JEND  ];
+    gen[cur][ISTART-1][JEND+1  ] = gen[cur][IEND  ][JSTART];
+    gen[cur][IEND+1  ][JSTART-1] = gen[cur][ISTART][JEND  ];
+    gen[cur][IEND+1  ][JEND+1  ] = gen[cur][ISTART][JSTART];
 }
 #else
 /* Another way to fill the ghost cells: change the ranges of the "for"
@@ -103,22 +103,22 @@ void copy_sides( )
     /* Copy top and bottom (one can also use memcpy() ). We copy a
        whole row (including ghost cells). */
     for (j=0; j<JEND+2; j++) {
-        grid[cur][ISTART-1][j] = grid[cur][IEND  ][j];
-        grid[cur][IEND+1  ][j] = grid[cur][ISTART][j];
+        gen[cur][ISTART-1][j] = gen[cur][IEND  ][j];
+        gen[cur][IEND+1  ][j] = gen[cur][ISTART][j];
     }
     /* Copy left and right. We copy a whole column (including ghost
        cells). */
     for (i=0; i<IEND+2; i++) {
-        grid[cur][i][JSTART-1] = grid[cur][i][JEND  ];
-        grid[cur][i][JEND+1  ] = grid[cur][i][JSTART];
+        gen[cur][i][JSTART-1] = gen[cur][i][JEND  ];
+        gen[cur][i][JEND+1  ] = gen[cur][i][JSTART];
     }
     /* There is no need to fill the corners */
 }
 #endif
 
-/* Compute the next grid given the current configuration; this
-   function uses the global variables grid and cur; updates are
-   written to the (1-cur) grid. */
+/* Compute the next gen given the current configuration; this
+   function uses the global variables gen and cur; updates are
+   written to the (1-cur) gen. */
 void step( void )
 {
     int i, j, next = 1 - cur;
@@ -126,38 +126,38 @@ void step( void )
         for (j=JSTART; j<JEND+1; j++) {
             /* count live neighbors of cell (i,j) */
             int nbors = 
-                grid[cur][i-1][j-1] + grid[cur][i-1][j] + grid[cur][i-1][j+1] + 
-                grid[cur][i  ][j-1] +                     grid[cur][i  ][j+1] + 
-                grid[cur][i+1][j-1] + grid[cur][i+1][j] + grid[cur][i+1][j+1];
+                gen[cur][i-1][j-1] + gen[cur][i-1][j] + gen[cur][i-1][j+1] + 
+                gen[cur][i  ][j-1] +                     gen[cur][i  ][j+1] + 
+                gen[cur][i+1][j-1] + gen[cur][i+1][j] + gen[cur][i+1][j+1];
  	    /* apply rules of the game of life to cell (i, j) */
-            if ( grid[cur][i][j] && (nbors < 2 || nbors > 3)) {
-                grid[next][i][j] = 0;
+            if ( gen[cur][i][j] && (nbors < 2 || nbors > 3)) {
+                gen[next][i][j] = 0;
             } else {
-                if ( !grid[cur][i][j] && (nbors == 3)) {
-                    grid[next][i][j] = 1;
+                if ( !gen[cur][i][j] && (nbors == 3)) {
+                    gen[next][i][j] = 1;
                 } else {
-                    grid[next][i][j] = grid[cur][i][j];
+                    gen[next][i][j] = gen[cur][i][j];
                 }
             }
         }
     }
 }
 
-/* Initialize the current grid grid[cur] with alive cells with density
-   p. This function uses the global variables cur and grid. grid[cur]
+/* Initialize the current gen gen[cur] with alive cells with density
+   p. This function uses the global variables cur and gen. gen[cur]
    is modified. */
 void init( float p )
 {
     int i, j;
     for (i=ISTART; i<IEND+1; i++) {
         for (j=JSTART; j<JEND+1; j++) {
-            grid[cur][i][j] = (((float)rand())/RAND_MAX < p);
+            gen[cur][i][j] = (((float)rand())/RAND_MAX < p);
         }
     }
 }
 
-/* Write grid[cur] to file fname in pbm (portable bitmap) format. This
-   function uses the global variables cur and grid (neither is
+/* Write gen[cur] to file fname in pbm (portable bitmap) format. This
+   function uses the global variables cur and gen (neither is
    modified). */
 void write_pbm( const char* fname )
 {
@@ -172,7 +172,7 @@ void write_pbm( const char* fname )
     fprintf(f, "%d %d\n", SIZE, SIZE);
     for (i=ISTART; i<IEND+1; i++) {
         for (j=JSTART; j<JEND+1; j++) {
-            fprintf(f, "%d ", grid[cur][i][j]);
+            fprintf(f, "%d ", gen[cur][i][j]);
         }
         fprintf(f, "\n");
     }

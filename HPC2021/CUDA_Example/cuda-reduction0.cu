@@ -59,7 +59,7 @@ __global__ void sum( int *a, int n )
 {
     __shared__ int temp[BLKDIM];
     int lindex = threadIdx.x; /* local idx (index of the thread within the block) */
-    int bindex = blockIdx.x; /* block idx (index of the block within the grid) */
+    int bindex = blockIdx.x; /* block idx (index of the block within the gen) */
     int gindex = threadIdx.x + blockIdx.x * blockDim.x; /* global idx (index of the array element handled by this thread) */
 
     temp[lindex] = a[gindex];

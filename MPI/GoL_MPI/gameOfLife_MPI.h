@@ -8,7 +8,7 @@
 
 
 //structure that represent a block assigned to a node
-struct grid_block{
+struct gen_block{
 
     int numRows_ghost; // number of rows of the local block + ghost rows
     int numCols_ghost; // number of columns of the local block + ghost columns
@@ -19,7 +19,7 @@ struct grid_block{
     int rank; // rank of the node
     int mpi_size; // total size of the communicator ( MPI_COMM_WORLD )
     
-    unsigned int **block; //matrix that represent the local grid
+    unsigned int **block; //matrix that represent the local gen
 
     int time_step;
     

@@ -29,23 +29,23 @@ void swap(unsigned int ***old, unsigned int ***new) {
 }
 
 // Allocate a matrix so as to have elements contiguos in memory
-unsigned int ** allocate_empty_grid(int rows, int cols)
+unsigned int ** allocate_empty_gen(int rows, int cols)
 {
 
 	int i;
 	//allocate memory for an array of pointers and then allocate memory for every row
-	unsigned int *grid = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
+	unsigned int *gen = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
 	unsigned int **array = (unsigned int **)malloc(rows*sizeof(unsigned int*));
 	for (i = 0; i < rows; i++)
-		array[i] = &(grid[cols*i]);
+		array[i] = &(gen[cols*i]);
 
 	return array;
 }
 
-void free_grid(unsigned int **grid){
+void free_gen(unsigned int **gen){
 
-	free(grid[0]);
-	free(grid);
+	free(gen[0]);
+	free(gen);
 
 }
 
@@ -63,8 +63,8 @@ int main(){
     int x, y;
     int h=100;
     int w = 100;
-    unsigned int **univ = allocate_empty_grid(h, w);
-	unsigned int **univ_prime = allocate_empty_grid(h, w);
+    unsigned int **univ = allocate_empty_gen(h, w);
+	unsigned int **univ_prime = allocate_empty_gen(h, w);
 
     for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = 1 ;
     for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ_prime[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
@@ -77,6 +77,6 @@ int main(){
     //show(univ_prime, w, h);
     printf("%d" , univ[h-1][w-1]);
 
-    free_grid(univ);
-    free_grid(univ_prime);
+    free_gen(univ);
+    free_gen(univ_prime);
 }

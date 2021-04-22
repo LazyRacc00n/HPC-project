@@ -175,7 +175,7 @@ else
     }
 
     dim3 block(BLKDIM, BLKDIM);
-    dim3 grid((N+BLKDIM-1)/BLKDIM, (N+BLKDIM-1)/BLKDIM);
+    dim3 gen((N+BLKDIM-1)/BLKDIM, (N+BLKDIM-1)/BLKDIM);
     const size_t size = N*N*sizeof(float);
 
     /* Allocate space for device copies of p, q, r */
@@ -199,7 +199,7 @@ else
      **/
     printf("No shared memory:\t");
     tstart = hpc_gettime();
-    matmul<<<grid, block>>>(d_p, d_q, d_r, N);
+    matmul<<<gen, block>>>(d_p, d_q, d_r, N);
     cudaDeviceSynchronize();
     tstop = hpc_gettime();
     tnoshared = tstop - tstart;
@@ -218,7 +218,7 @@ else
      **/
     printf("Shared memory:\t\t");
     tstart = hpc_gettime();
-    matmulb_generic<<<grid, block>>>(d_p, d_q, d_r, N);
+    matmulb_generic<<<gen, block>>>(d_p, d_q, d_r, N);
     cudaDeviceSynchronize();
     tstop = hpc_gettime();
     tshared = tstop - tstart;

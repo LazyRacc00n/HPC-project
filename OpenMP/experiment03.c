@@ -82,23 +82,23 @@ void swap(unsigned int ***old, unsigned int ***new) {
 
 
 // Allocate a matrix so as to have elements contiguos in memory
-unsigned int ** allocate_empty_grid(int rows, int cols)
+unsigned int ** allocate_empty_gen(int rows, int cols)
 {
 
 	int i;
 	//allocate memory for an array of pointers and then allocate memory for every row
-	unsigned int *grid = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
+	unsigned int *gen = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
 	unsigned int **array = (unsigned int **)malloc(rows*sizeof(unsigned int*));
 	for (i = 0; i < rows; i++)
-		array[i] = &(grid[cols*i]);
+		array[i] = &(gen[cols*i]);
 
 	return array;
 }
 
-void free_grid(unsigned int **grid){
+void free_gen(unsigned int **gen){
 
-	free(grid[0]);
-	free(grid);
+	free(gen[0]);
+	free(gen);
 
 }
 
@@ -133,8 +133,8 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 
 void game(int w, int h, int t, int threads) {
 	int x,y,z;
-	unsigned int **current_gen = allocate_empty_grid(h, w);
-	unsigned int **next_gen = allocate_empty_grid(h, w);
+	unsigned int **current_gen = allocate_empty_gen(h, w);
+	unsigned int **next_gen = allocate_empty_gen(h, w);
 
 	struct timeval start, end;
 	double tot_time = 0.;
@@ -179,8 +179,8 @@ void game(int w, int h, int t, int threads) {
 
 	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
 
-	free_grid(current_gen);
-	free_grid(next_gen);
+	free_gen(current_gen);
+	free_gen(next_gen);
 
 
 }

@@ -7,17 +7,34 @@
 #define ALIVE 1
 #define DEAD 0
 
+void free_gen(unsigned int **gen){
+
+	free(gen[0]);
+	free(gen);
+
+}
+
+void swap(unsigned int ***old, unsigned int ***new) {
+	
+    unsigned int **temp = *old;
+
+    *old = *new;
+    *new = temp;
+
+}
+
+
 
 // Allocate a matrix so as to have elements contiguos in memory
-unsigned int ** allocate_empty_grid(int rows, int cols)
+unsigned int ** allocate_empty_gen(int rows, int cols)
 {
 
 	int i;
 	//allocate memory for an array of pointers and then allocate memory for every row
-	unsigned int *grid = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
+	unsigned int *gen = (unsigned int *)malloc(rows*cols* sizeof(unsigned int));
 	unsigned int **array = (unsigned int **)malloc(rows*sizeof(unsigned int*));
 	for (i = 0; i < rows; i++)
-		array[i] = &(grid[cols*i]);
+		array[i] = &(gen[cols*i]);
 
 	return array;
 }
@@ -59,9 +76,7 @@ void printbig(void *u, int w, int h, int z) {
 // compute neighbors in around 3x3
 int compute_neighbor(int i, int j, int nRows, int nCols){
 
-	//TODO: to verify PERCHé + nRows???????????????????????????????????????????????????????????
-	// Guarda come vengono gestiti i bordi nell'originale
-	
+	// Guarda come vengono gestiti i bordi nell'originale	
 	int x = (i + nRows) % nRows;
 	int y = (j + nCols) % nCols;
 	return  x * nCols + y;
@@ -75,23 +90,22 @@ int compute_neighbor(int i, int j, int nRows, int nCols){
 
 /*A 2D matrix is stored as 1D in memory:
 	- in row-major layout, the element(x,y) ca be adressed as x*width+ y
-	- A grid is composed by block, each block is composed by threads. All threads in same block have same block index.
+	- A gen is composed by block, each block is composed by threads. All threads in same block have same block index.
 	- to esure that  the extra threads do not do any work --> if(row<width && col<width) { --> written in the kernel
 																then do work
 															  }
 */
-__global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, int nRows, int nCols){
+__global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int nRows, int nCols, int block_size){
 
 	const int bx = blockIdx.x, by = blockIdx.y;
     const int tx = threadIdx.x, ty = threadIdx.y;
     
+	//TODO: capire se è da usaere blockDim.y o va bene 
+	const int i = by * blockDim.y + ty; 
+    const int j = bx * blockDim.x + tx;
 
-	// TODO: QUEL BLOCK_DIM in matmul è la dimensione della matrice o il numero di thread?
-	// da verificare ma penso sia la seconda.
-	const int i = bx * nCols + tx;
-    const int j = by * nRows + ty;
-
-	if( i < nRows && j < nCols){
+	//to esure that  the extra threads do not do any work
+	if( i < nRows && j < nCols) return;
 
 		// Envolve computation
 		// TODO: count how many neighbors are alive
@@ -110,111 +124,102 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 		int bottom =      compute_neighbor(i+1, j, nRows, nCols);
 
 		//calculate how many neighbors around 3x3 are alive
-		nAliveNeig = curr_grid[top_left] + curr_grid[left] + curr_grid[bottom_left] \
-					+	curr_grid[top] + curr_grid[top_right] + curr_grid[right] 	\ 
-					+ 	curr_grid[bottom_right] + curr_grid[bottom];
+		nAliveNeig = curr_gen[top_left] + curr_gen[left] + curr_gen[bottom_left] \
+					+	curr_gen[top] + curr_gen[top_right] + curr_gen[right] 	\ 
+					+ 	curr_gen[bottom_right] + curr_gen[bottom];
 		
-		// store computation in next_grid
-		next_grid[ i * nCols + j] = ( nAliveNeig == 3 || (nAliveNeig == 2 && curr_grid[ i * nCols + j]));
+		// store computation in next_gen
+		next_gen[ i * nCols + j] = ( nAliveNeig == 3 || (nAliveNeig == 2 && curr_gen[ i * nCols + j]));
 		
-	}
-
-
-	
 
 }
 
 
-void game(int nRows, int nCols, int timestep ){
 
-	int t=0;
+
+
+void game(int nRows, int nCols, int timestep, int block_size ){
+
+	int z, x, y;
 	struct timeval start, end;
 	double tot_time = 0.;
 
-	//TODO: allocation in CPU
-	unsigned int **curr_grid = allocate_empty_grid(nRows, nCols) , **next_grid = allocate_empty_grid(nRows, nCols); 
+	//TODO: allocation in CPU and initialization
+	unsigned int ** curr_gen = allocate_empty_gen(nRows, nCols);
+	unsigned int ** next_gen = allocate_empty_gen(nRows, nCols); 
+	
+	//srand(10);
+	for (x = 0; x < w; x++) for (y = 0; y < h; y++) curr_gen[y][x] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 
 	//TODO: allocation in GPU
-	size_t grid_size = nRows * nCols * sizeof(unsigned int);
+	size_t gen_size = nRows * nCols * sizeof(unsigned int);
 
-	unsigned int * cuda_curr_grid, cuda_next_grid;
+	unsigned int * cuda_curr_gen;
+	unsigned int *cuda_next_gen;
 
-	//TODO: calculate how many block and how many thread per block
+	cudaMalloc((void ** ) &cuda_curr_gen, gen_size );
+	cudaMalloc((void ** ) &cuda_next_gen, gen_size );
+
+	// copy matrix from the host (CPU) to the device (GPU)
+	cudaMemcpy(cuda_curr_gen, curr_gen, gen_size, cudaMemcpyHostToDevice);
+	//cudaMemset(cuda_next_gen, DEAD, gen_size); inutile secondo me TODO: vedere se eliminare sta riga
+
+	//calculate how many block and how many thread per block
 	
-	//dim3 block(nRows, nRows);
-    //dim3 grid((N+BLKDIM-1)/BLKDIM, (N+BLKDIM-1)/BLKDIM);
+	dim3 block(block_size, block_size), dimGrid;
+    dimGrid.x = ( nCols + block.x - 1)/block.x;
+    dimGrid.y = ( nRows + block.y - 1)/block.y;
 	
-	//TODO: curr grid initialization ( possibility to do it also with cuda? )
-
-	//TODO: copy in from HOST to DEVICE --> cudaMemcpy( dest, src, cudaMemcpyHostToDevice)
 
 
-	for(t=0; t < timestep; t++){
+
+	for(z=0; z < timestep; z++){
 			
-			//TODO: MISSING STUFF
-			// cuda_envolve << nThreadPerBlock, nBlock >> ()
+			// get starting time at iteration z
+			gettimeofday(&start, NULL);
 
-			//TODO: cudaDeviceSynchronize()
+			// Call Kernel on GPU
+			cuda_envolve << dimGrid, block >> (cuda_curr_gen, cuda_next_gen, nRows, nCols);
 
-			//TODO: swap cur_grid and next_grid
+			cudaDeviceSynchronize(); 
 
-			
-		
-	}
+			//swap cur_gen and next_gen
+			swap(&cuda_curr_gen, &cuda_next_gen);
 
-
-
-
-
-
-	//TODO: free GPU memory
-	//TODO: free CPU memory
-}
-
-
- 
-
-/* OLD GAME
- 
-void game(int w, int h, int t) {
-	int x,y,z;
-	unsigned univ[h][w];
-	//struct timeval start, end; 
-	
-	//initialization
-	//srand(10);
-	for (x = 0; x < w; x++) for (y = 0; y < h; y++) univ[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
-	
-	if (x > 1000) printbig(univ, w, h,0);
-	
-	for(z = 0; z < t;z++) {
-		if (x <= 1000) show(univ, w, h);
-		//else gettimeofday(&start, NULL);
-		
-		evolve(univ, w, h);
-		if (x > 1000) {
+			// get ending time of iteration z
 			gettimeofday(&end, NULL);
-		    printf("Iteration %d is : %ld ms\n", z,
-		       ((end.tv_sec * 1000000 + end.tv_usec) - 
-		       (start.tv_sec * 1000000 + start.tv_usec))/1000 );
-		}
+		
+			// sum up the total time execution
+			tot_time += (double) elapsed_wtime(start, end);
+			
+		
 	}
-	if (x > 1000) printbig(univ, w, h,1);
+
+	//free GPU memory
+	cudaFree(cuda_curr_gen);
+	cudaFree(cuda_next_gen);
+
+	//free CPU memory
+	free_gen(curr_gen);
+	free_gen(next_gen);
 }
- */
- 
+
+
+  
  
 int main(int c, char **v) {
-	int w = 0, h = 0, t = 0;
+	int w = 0, h = 0, t = 0, block_size = 32;
+
 	if (c > 1) w = atoi(v[1]);
 	if (c > 2) h = atoi(v[2]);
 	if (c > 3) t = atoi(v[3]);
+	if (c > 4) block_size = atoi(v[4]);
+
 	if (w <= 0) w = 30;
 	if (h <= 0) h = 30;
 	if (t <= 0) t = 100;
-
-
+	if (block_size < 32) block_size = 32; // number of threads per block
 	
-	//game(w, h, t);
+	game(w, h, t, block_size);
 }
 
