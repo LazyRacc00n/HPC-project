@@ -66,6 +66,7 @@ __global__ void matmulb( const float *p, const float *q, float *r, int n )
     
     const int bx = blockIdx.x, by = blockIdx.y;
     const int tx = threadIdx.x, ty = threadIdx.y;
+    
     const int i = by * BLKDIM + ty;
     const int j = bx * BLKDIM + tx;
     float v = 0.0; int m, k;

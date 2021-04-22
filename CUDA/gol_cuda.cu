@@ -4,8 +4,16 @@
 #include <time.h>
 #include <unistd.h> //ONLY UNIX SYSTEM TODO: uncomment on the cluster
 
-//TODO: ORIGINAL CODE --> TO MODIFY
- 
+#define ALIVE 1
+#define DEAD 0
+
+
+
+
+
+
+
+//TODO: TO MODIFY
 void show(void *u, int w, int h) {
 	int x,y;
 	int (*univ)[w] = u;
@@ -19,6 +27,7 @@ void show(void *u, int w, int h) {
 }
 
 
+//TODO: TO MODIFY
 void printbig(void *u, int w, int h, int z) {
 	int x,y;
 	int (*univ)[w] = u;
@@ -38,30 +47,6 @@ void printbig(void *u, int w, int h, int z) {
 }
 
 
-// TODO: CONVERT IN KERNEL
-void evolve(void *u, int w, int h) {
-	unsigned (*univ)[w] = u;
-	unsigned new[h][w];
-	int x,y,x1,y1;
- 
-	for (y = 0; y < h; y++) for (x = 0; x < w; x++) {
-		int n = 0;
-		for (y1 = y - 1; y1 <= y + 1; y1++)
-			for (x1 = x - 1; x1 <= x + 1; x1++)
-				if (univ[(y1 + h) % h][(x1 + w) % w]) n++;
-		if (univ[y][x]) n--;
-		new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
-		/*
-		 * a cell is born, if it has exactly three neighbours 
-		 * a cell dies of loneliness, if it has less than two neighbours 
-		 * a cell dies of overcrowding, if it has more than three neighbours 
-		 * a cell survives to the next generation, if it does not die of loneliness 
-		 * or overcrowding 
-		 */
-	}
-	for (y = 0; y < h; y++) for (x = 0; x < w; x++) univ[y][x] = new[y][x];
-}
- 
 
 //int tid = threadIdx.x + blockIdx.x * blockDim.x;
 // number of threds: ( N + number_thred_per_block) / number_thred_per_block
@@ -74,19 +59,60 @@ void evolve(void *u, int w, int h) {
 	- to esure that  the extra threads do not do any work --> if(row<width && col<width) { --> written in the kernel
 																then do work
 															  }
-
 */
 __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, int nRows, int nCols){
 
-
-	int row = blockIdx.x*blockDim.x + threadIdx.x;
-	int col = blockIdx.x*blockDim.x + threadIdx.x;
+	const int bx = blockIdx.x, by = blockIdx.y;
+    const int tx = threadIdx.x, ty = threadIdx.y;
+    
+    const int i = by * nRows + ty;
+    const int j = bx * nCols + tx;
 
 	if( row < nRows && col < nCols){
 
 		// Envolve computation
+		// TODO: count how many neighbors are alive
+
+		
+		// TODO: store computation in next_grid
+	
+	
 	}
 
+
+	//TODO: swap cur and next grid
+
+}
+
+
+void game(int nRows, int nCols, int timestep ){
+
+	int t=0;
+	unsigned int *curr_grid, *next_grid;
+
+	//TODO: allocation in CPU
+
+	//TODO: allocation in GPU
+	
+	//TODO: curr grid initialization ( possibility to do it also with cuda? )
+
+	//TODO: copy in from HOST to DEVICE
+
+
+	for(t=0; t < timestep; t++){
+			
+			//TODO: MISSING STUFF
+			// cuda_envolve << nThreadPerBlock, nBlock >> ()
+		
+	}
+
+
+
+
+
+
+	//TODO: free memory GPU
+	//TODO:
 }
 
 
