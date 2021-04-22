@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h> //ONLY UNIX SYSTEM TODO: uncomment on the cluster
+#include <unistd.h> 
 
 #define ALIVE 1
 #define DEAD 0
@@ -11,7 +11,6 @@ void free_gen(unsigned int **gen){
 
 	free(gen[0]);
 	free(gen);
-
 }
 
 void swap(unsigned int ***old, unsigned int ***new) {
@@ -39,35 +38,39 @@ unsigned int ** allocate_empty_gen(int rows, int cols)
 	return array;
 }
 
-//TODO: TO MODIFY
-void show(void *u, int w, int h) {
-	int x,y;
-	int (*univ)[w] = u;
+
+void show(unsigned int **curr_gen, int nRows, int nCols) {
+	
+	int i,j;
+
 	printf("\033[H");
-	for (y = 0; y < h; y++) {
-		for (x = 0; x < w; x++) printf(univ[y][x] ? "\033[07m  \033[m" : "  ");
+	for (i = 0; i < nRows; i++) {
+		for (j = 0; j < nCols; j++) printf(curr_gen[i][j] ? "\033[07m  \033[m" : "  ");
 		printf("\033[E");
 	}
 	fflush(stdout);
-	//usleep(200000);
+	usleep(200000);
 }
 
 
-//TODO: TO MODIFY
-void printbig(void *u, int w, int h, int z) {
-	int x,y;
-	int (*univ)[w] = u;
+void printbig(unsigned int **curr_gen, int nRows, int nCols, int z) {
+	
+	int i,j;
 	
 	FILE *f;
 	
-	if(z == 0) f = fopen("glife.txt", "w" );
-	else f = fopen("glife.txt", "a" );
+	if(z == 0) f = fopen("glife_cuda.txt", "w" );
+	else f = fopen("glife_cuda.txt", "a" );
 	
-	for (y = 0; y < h; y++) {
-		for (x = 0; x < w; x++) fprintf (f,"%c", univ[y][x] ? 'x' : ' ');
+	for (i = 0; i < nRows; i++) {
+		for (j = 0; j < nCols; j++) fprintf (f,"%c", curr_gen[i][j] ? 'x' : ' ');
 		fprintf(f,"\n");
 	}
-	fprintf(f,"\n\n\n\n\n\n ******************************************************************************************** \n\n\n\n\n\n");
+	
+	//separate fisrt evolution from last
+	if( z == 0)
+		fprintf(f,"\n\n\n\n\n\n ******************************************************************************************** \n\n\n\n\n\n");
+	
 	fflush(f);
 	fclose(f);
 }
@@ -108,7 +111,6 @@ __global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int 
 	if( i < nRows && j < nCols) return;
 
 		// Envolve computation
-		// TODO: count how many neighbors are alive
 		int nAliveNeig = 0;
 
 		// index --> i * nCols + j
@@ -136,25 +138,23 @@ __global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int 
 
 
 
-
-
 void game(int nRows, int nCols, int timestep, int block_size ){
 
 	int z, x, y;
 	struct timeval start, end;
 	double tot_time = 0.;
 
-	//TODO: allocation in CPU and initialization
+	//allocation in CPU and initialization
 	unsigned int ** curr_gen = allocate_empty_gen(nRows, nCols);
-	unsigned int ** next_gen = allocate_empty_gen(nRows, nCols); 
+	unsigned int ** next_gen = allocate_empty_gen(nRows, nCols);
 	
 	//srand(10);
 	for (x = 0; x < w; x++) for (y = 0; y < h; y++) curr_gen[y][x] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 
-	//TODO: allocation in GPU
+	//allocation in GPU
 	size_t gen_size = nRows * nCols * sizeof(unsigned int);
 
-	unsigned int * cuda_curr_gen;
+	unsigned int *cuda_curr_gen;
 	unsigned int *cuda_next_gen;
 
 	cudaMalloc((void ** ) &cuda_curr_gen, gen_size );
@@ -162,16 +162,13 @@ void game(int nRows, int nCols, int timestep, int block_size ){
 
 	// copy matrix from the host (CPU) to the device (GPU)
 	cudaMemcpy(cuda_curr_gen, curr_gen, gen_size, cudaMemcpyHostToDevice);
-	//cudaMemset(cuda_next_gen, DEAD, gen_size); inutile secondo me TODO: vedere se eliminare sta riga
+	//cudaMemset(cuda_next_gen, DEAD, gen_size); inutile secondo me TODO: vedere se eliminare sta riga, anche secondo me, anche second o me
 
 	//calculate how many block and how many thread per block
+	dim3 num_threads(block_size, block_size), dimGrid;
+    num_blocks.x = ( nCols + num_threads.x - 1)/num_threads.x;
+    num_blocks.y = ( nRows + num_threads.y - 1)/num_threads.y;
 	
-	dim3 block(block_size, block_size), dimGrid;
-    dimGrid.x = ( nCols + block.x - 1)/block.x;
-    dimGrid.y = ( nRows + block.y - 1)/block.y;
-	
-
-
 
 	for(z=0; z < timestep; z++){
 			
@@ -179,7 +176,7 @@ void game(int nRows, int nCols, int timestep, int block_size ){
 			gettimeofday(&start, NULL);
 
 			// Call Kernel on GPU
-			cuda_envolve << dimGrid, block >> (cuda_curr_gen, cuda_next_gen, nRows, nCols);
+			cuda_envolve<<<num_blocks, num_threads>>>(cuda_curr_gen, cuda_next_gen, nRows, nCols);
 
 			cudaDeviceSynchronize(); 
 
@@ -191,9 +188,29 @@ void game(int nRows, int nCols, int timestep, int block_size ){
 		
 			// sum up the total time execution
 			tot_time += (double) elapsed_wtime(start, end);
+
+
+			if( nCols > 1000 ){
+				if( z == 0 || z == timestep - 1 ){
+					cudaMemcpy(curr_gen, cuda_curr_gen, gen_size, cudaMemcpyDeviceToHost);
+					printbig(curr_gen, nRows, nCols, z);
+				}
+			}else{
+				
+				cudaMemcpy(curr_gen, cuda_curr_gen, gen_size, cudaMemcpyDeviceToHost);
+				show(curr_gen, nRows, nCols);
+
+			}
 			
 		
 	}
+
+	// Save time execution
+	char *fileName = (char*)malloc(50 * sizeof(char));
+	sprintf(fileName, "Results/CUDA-%d-%d-%d.txt", w, h, t);
+
+	writeFile(fileName, (threads==0 || threads==1), tot_time, block_size);
+	free(fileName);
 
 	//free GPU memory
 	cudaFree(cuda_curr_gen);
@@ -202,6 +219,7 @@ void game(int nRows, int nCols, int timestep, int block_size ){
 	//free CPU memory
 	free_gen(curr_gen);
 	free_gen(next_gen);
+	
 }
 
 
