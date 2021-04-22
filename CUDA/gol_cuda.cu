@@ -42,9 +42,12 @@ void printbig(void *u, int w, int h, int z) {
 }
 
 
+// compute neighbors in around 3x3
 int compute_neighbor(int i, int j, int nRows, int nCols){
 
-	//TODO: to verify
+	//TODO: to verify PERCHé + nRows???????????????????????????????????????????????????????????
+	// Guarda come vengono gestiti i bordi nell'originale
+	
 	int x = (i + nRows) % nRows;
 	int y = (j + nCols) % nCols;
 	return  x * nCols + y;
@@ -70,9 +73,6 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
     
 	const int i = bx * nCols + tx;
     const int j = by * nRows + ty;
-    
-
-	int x,y;
 
 	if( i < nRows && j < nCols){
 
@@ -82,6 +82,7 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 
 		// index --> i * nCols + j
 		
+		//calculate the neighbors
 		int top_left =    compute_neighbor(i-1, j-1, nRows, nCols);
 		int left = 		  compute_neighbor(i, j-1, nRows, nCols);
 		int bottom_left = compute_neighbor(i+1, j-1, nRows, nCols);
@@ -91,6 +92,7 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 		int bottom_right= compute_neighbor(i+1, j+1, nRows, nCols);
 		int bottom =      compute_neighbor(i+1, j, nRows, nCols);
 
+		//calculate how many neighbors around 3x3 are alive
 		nAliveNeig = top_left + left + bottom_left + top + top_right + right + bottom_right + bottom;
 		
 		/*
@@ -106,7 +108,7 @@ __global__ void cuda_evolve(unsigned int *curr_grid, unsigned int *next_grid, in
 	}
 
 
-	//TODO: swap cur and next grid
+	//TODO: swap cur_grid and next_grid
 
 }
 
