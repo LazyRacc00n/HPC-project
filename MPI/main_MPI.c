@@ -169,7 +169,7 @@ void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype b
 
 	int i, j;
 	MPI_Status stat;
-	char filename[] = "glife_MPI_v2.txt";
+	char filename[] = "MPI/glife_MPI_v2.txt";
 
 	//send data to the root, if I'm not the root
 	if (genBlock->rank != MPI_root)
@@ -233,7 +233,7 @@ void display_v1(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype r
 
 	int i, j;
 	MPI_Status stat;
-	char filename[] = "glife_MPI_v1.txt";
+	char filename[] = "MPI/glife_MPI_v1.txt";
 
 	double partial_time = 0., start, end;
 
@@ -436,9 +436,9 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 
 		char *fileName = (char *)malloc(50 * sizeof(char));
 		if (version == 1)
-			sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V1.csv", nCols, nRows, time);
+			sprintf(fileName, "MPI/MPI_Results/Exp01-MPI-%d-%d-%d_V1.csv", nCols, nRows, time);
 		else
-			sprintf(fileName, "MPI_Experiments/Exp01-MPI-%d-%d-%d_V2.csv", nCols, nRows, time);
+			sprintf(fileName, "MPI/MPI_Results/Exp01-MPI-%d-%d-%d_V2.csv", nCols, nRows, time);
 
 		writeFile(fileName, genBlock->mpi_size == 2, tot_time, genBlock->mpi_size);
 	}

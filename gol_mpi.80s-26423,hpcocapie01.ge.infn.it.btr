@@ -1,0 +1,8 @@
+
+gol_mpi:26423 terminated with signal 11 at PC=2b0ec7bca15d SP=7fff9bb68290.  Backtrace:
+/lib64/libc.so.6(_IO_vfprintf+0x2d)[0x2b0ec7bca15d]
+/lib64/libc.so.6(_IO_fprintf+0x87)[0x2b0ec7bd47d7]
+./bin/gol_mpi[0x404f95]
+./bin/gol_mpi[0x40282a]
+/lib64/libc.so.6(__libc_start_main+0xf5)[0x2b0ec7ba4b35]
+./bin/gol_mpi[0x4014b9]

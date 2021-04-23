@@ -173,7 +173,7 @@ void game(int w, int h, int t) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Results/Serial-%d-%d-%d.txt", w, h, t);
+	sprintf(fileName, "Serial-%d-%d-%d.csv", w, h, t);
 
 	writeFile(fileName, true, tot_time, 0);
 	free(fileName);
@@ -184,10 +184,6 @@ void game(int w, int h, int t) {
 
 
 }
- 
- 
- 
- 
  
 int main(int c, char **v) {
 	int w = 0, h = 0, t = 0;
