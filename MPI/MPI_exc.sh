@@ -32,11 +32,9 @@ for grid_dim in "${grid_dim_list[@]}"
 do
     for num_process in "${list_number_process[@]}"
     do
-
+        per_host=$(( num_process / nodes))
         for version in "${display_version_list[@]}"
         do
-
-            per_host=$(( num_process / nodes))
 
             mpiexec -hostfile $host_list -perhost $per_host -np $num_precess ./bin $grid_dim $grid_dim 10 $version $not_show_evolution
         
