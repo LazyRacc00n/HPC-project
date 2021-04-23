@@ -22,9 +22,9 @@ nodes=1
 not_show_evolution=1
 
 # path to file with the host list
-host_list="MPI/host_list.txt"
+host_list="host_list.txt"
 
-bin="/bin/gol_mpi"
+bin="../bin/gol_mpi"
 
 
 
