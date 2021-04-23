@@ -24,7 +24,6 @@ MPI_DIR = MPI
 # OpenMP files
 OMP_FILE = experiment03.c
 MPI_FILE = main_MPI.c
-
 UTILS_FILE = utils.c
 SERIAL_FILE = glife.c
 
