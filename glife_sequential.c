@@ -5,12 +5,11 @@
  *
  */
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h> // boolean type
-#include <omp.h> // Enable OpenMP parallelization
-
 
 
 
@@ -112,7 +111,6 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 	
 		int x,y,x1,y1,n;
         
-		#pragma omp parallel for  schedule(static) shared(new, univ) private(x,x1,y1,n)
 		for ( y = 0; y < h; y++) 
         	for ( x = 0; x < w; x++) {
 		    	n = 0;
@@ -129,8 +127,10 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 	    }
 }
  
+ 
+ 
 
-void game(int w, int h, int t, int threads) {
+void game(int w, int h, int t) {
 	int x,y,z;
 	unsigned int **current_gen = allocate_empty_gen(h, w);
 	unsigned int **next_gen = allocate_empty_gen(h, w);
@@ -173,9 +173,9 @@ void game(int w, int h, int t, int threads) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Results/Exp03-OMP-%d-%d-%d.csv", w, h, t);
+	sprintf(fileName, "Results/Serial-%d-%d-%d.txt", w, h, t);
 
-	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
+	writeFile(fileName, true, tot_time, 0);
 	free(fileName);
 
 
@@ -187,32 +187,16 @@ void game(int w, int h, int t, int threads) {
  
  
  
+ 
+ 
 int main(int c, char **v) {
-    
-	int w = 0, h = 0, t = 0, threads = 1;
-    // first parameter WIDTH
+	int w = 0, h = 0, t = 0;
 	if (c > 1) w = atoi(v[1]);
-
-    // second parameter HEIGTH
 	if (c > 2) h = atoi(v[2]);
-
-    // third parameter TIME
 	if (c > 3) t = atoi(v[3]);
-
-    // fourth parameter Number of threads/core
-    if (c > 4) threads = atoi(v[4]);
-
 	if (w <= 0) w = 30;
 	if (h <= 0) h = 30;
 	if (t <= 0) t = 100;
-
-	// set the threads with OpenMP
-	omp_set_num_threads(threads);
-
-	
-	// execute the game code
-	game(w, h, t, threads);
-
-		
+	game(w, h, t);
 }
 

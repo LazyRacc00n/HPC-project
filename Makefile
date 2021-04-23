@@ -25,7 +25,7 @@ MPI_DIR = MPI
 OMP_FILE = experiment03.c
 MPI_FILE = main_MPI.c
 UTILS_FILE = utils.c
-SERIAL_FILE = glife.c
+SERIAL_FILE = glife_sequential.c
 
 #bin location after compilation
 BIN = bin
@@ -45,7 +45,7 @@ mpi: $(MPI_DIR)/$(MPI_FILE)
 	$(MPICC) $(MPI_DIR)/$(MPI_FILE) $(UTILS_FILE) -o $(BIN)/gol_mpi 
 
 serial: $(SERIAL_FILE) 
-	$(ICC) $(SERIAL_FILE) $(UTILS_FILE) -o $(BIN)/$gol_serial 
+	$(ICC) $(SERIAL_FILE) -o $(BIN)/$gol_serial 
 
 
 
