@@ -139,7 +139,7 @@ void game(int w, int h, int t, int threads) {
 	double tot_time = 0.;
 
 	//initialization
-	srand(10);
+	//srand(10);
 	for (x = 0; x < w; x++) for (y = 0; y < h; y++) current_gen[y][x] = rand() < RAND_MAX / 10 ? 1 : 0;
 	
 	if (x > 1000) printbig(current_gen, w, h,0);

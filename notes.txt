@@ -30,6 +30,18 @@ Non ne capisco il motivo, ma il pull normale non funziona:
         - Pull, Push -> pull from... -> origin -> main
 
 
+--------------------------- ENTER THE CUDA CLUSTER ---------------------------------------------------------------
+
+ssh -CX user_hpcc@130.251.61.97  pass: jfTuf-O8Bcq
+
+ssh node1
+
+cd Project...
+
+export PATH=$PATH:/usr/local/cuda/bin
+
+
+
 --------------------------- HOW TO PRESENT DATA ---------------------------------------------------------------
 
 
