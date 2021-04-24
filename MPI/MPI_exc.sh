@@ -4,42 +4,58 @@ grid_dim_list=(100 500 1000 5000 10000 50000)
 
 display_versions_list=(1 2)
 
-# uncomment and comment the other one for 2 process 
-list_number_processes=(2 4 8 16 32 64 128 256)
 
-# uncomment and comment the other one for 2 process 
-#list_number_processes=(2 4 8 16 32 64 128 256 512)
+#Count number of nodes in the file host_list --> if the number is not available exit from the program
+nodes="$(cat host_list.txt | wc -l)"
 
-# uncomment and comment the other one for 4 process 
-#list_number_processes=(4 8 16 32 64 128 256 512 1024)
+case $nodes in
+    
+    1)
+        list_number_processes=(2 4 8 16 32 64 128 256)
+        ;;
+    2)
+        list_number_processes=(2 4 8 16 32 64 128 256 512)
+        ;;
+    4)  list_number_processes=(4 8 16 32 64 128 256 512 1024)
+        ;;
 
-# uncomment and comment the other one for 1 process 
-#list_number_processes=(8 16 32 64 128 256 512 1024)
+    8)  list_number_processes=(8 16 32 64 128 256 512 1024)
+        ;;
 
-#change when you pass another list of processes above
-nodes=1
+    *)  
+        printf "\n\n"
+        echo "NOT VALID NUMBER OF NODES!!"
+        echo "Available number of nodes: 1 - 2 - 4 - 8"
+        echo "Please chage the file host_list.txt"
+        printf "\n\n"
+        exit 1
+esac
+
+
+for i in "${list_number_processes[@]}"
+do
+    echo $i
+done
 
 not_show_evolution=1
 
 # path to file with the host list
 host_list="host_list.txt"
 
-bin="../bin/gol_mpi"
-
-echo "$(pwd)"
-
+bin_exec="../bin/gol_mpi"
 
 for grid_dim in "${grid_dim_list[@]}"
 do
-    for num_process in "${list_number_process[@]}"
+   
+    for num_process in "${list_number_processes[@]}"
     do
+        
         per_host=$(( num_process / nodes))
-        for version in "${display_version_list[@]}"
+        
+        for version in "${display_versions_list[@]}"
         do
 
-            per_host=$(( num_process / nodes))
-
-            #mpiexec -hostfile $host_list -perhost $per_host -np $num_precess ./bin $grid_dim $grid_dim 10 $version $not_show_evolution
+            mpiexec -hostfile $host_list -perhost $per_host -np $num_precess ./$bin_exec $grid_dim $grid_dim 10 $version $not_show_evolution}
         
         done
     done
