@@ -33,7 +33,7 @@ for grid_dim in "${grid_dim_list[@]}"
 do
     for num_process in "${list_number_process[@]}"
     do
-
+        per_host=$(( num_process / nodes))
         for version in "${display_version_list[@]}"
         do
 
