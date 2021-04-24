@@ -45,7 +45,7 @@ esac
 
 for grid_dim in "${grid_dim_list[@]}"
 do
-   printf "\n - #NODES: 1 - GRID DIM: $grid_dim x $grid_dim \n"
+   printf "\n - #NODES: $nodes - GRID DIM: $grid_dim x $grid_dim \n"
     for num_process in "${list_number_processes[@]}"
     do
         

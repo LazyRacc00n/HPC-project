@@ -387,6 +387,9 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	unsigned int **next_genBlock;
 	struct timeval start, end;
 	double partial_time = 0., tot_time = 0., send_time = 0.;
+	
+	//Random Initialization of the gen assigned to each node
+	init_gen_block(genBlock);
 
 	// create a derived datatype to send a row
 	MPI_Datatype row_block_type, row_block_without_ghost, block_type;
@@ -404,8 +407,7 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	MPI_Type_commit(&row_block_without_ghost);
 	MPI_Type_commit(&block_type);
 
-	//Random Initialization of the gen assigned to each node
-	init_gen_block(genBlock);
+	
 
 	next_genBlock = allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols_ghost);
 
