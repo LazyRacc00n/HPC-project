@@ -28,14 +28,6 @@ void free_gen(unsigned int **gen)
 	free(gen);
 }
 
-void swap(unsigned int ***old, unsigned int ***new)
-{
-
-	unsigned int **temp = *old;
-
-	*old = *new;
-	*new = temp;
-}
 
 void print_block(struct gen_block *genBlock)
 {
@@ -417,7 +409,6 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 			gettimeofday(&start, NULL);
 
 		evolve_block(genBlock, next_genBlock, nRows, nCols, row_block_type);
-		//swap(&genBlock->block, &next_genBlock);
 
 		if (version == 1)
 			display_v1(genBlock, nRows, nCols, row_block_without_ghost, t, exec_time);
