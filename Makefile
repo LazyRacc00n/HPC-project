@@ -45,7 +45,7 @@ mpi: $(MPI_DIR)/$(MPI_FILE)
 	$(MPICC) $(MPI_DIR)/$(MPI_FILE) $(UTILS_FILE) $(MPI_DIR)/$(MPI_UTILS_FILE) -o $(BIN)/gol_mpi 
 
 serial: $(SERIAL_FILE) 
-	$(ICC) $(SERIAL_FILE) -o $(BIN)/$gol_serial 
+	$(ICC) $(SERIAL_FILE) -o $(BIN)/gol_serial 
 
 
 

@@ -20,15 +20,15 @@ nodes="$(cat host_list.txt | wc -l)"
 case $nodes in
     
     1)
-        list_number_processes=(2 4 8 16 32 64 128 256)
+        list_number_processes=(2 4 8 16 32 64)
         ;;
     2)
-        list_number_processes=(2 4 8 16 32 64 128 256 512)
+        list_number_processes=(2 4 8 16 32 64 128)
         ;;
-    4)  list_number_processes=(4 8 16 32 64 128 256 512 1024)
+    4)  list_number_processes=(4 8 16 32 64 128 256)
         ;;
 
-    8)  list_number_processes=(8 16 32 64 128 256 512 1024)
+    8)  list_number_processes=(8 16 32 64 128 256 512)
         ;;
 
     *)  
@@ -50,10 +50,13 @@ do
     do
         
         per_host=$(( num_process / nodes))
+
+        printf "\n perhost: $per_host num_procceses: $num_process\n"
+
         
         for version in "${display_versions_list[@]}"
         do  
-            
+
             mpiexec -hostfile $host_list -perhost $per_host -np $num_process ./$bin_exec $grid_dim $grid_dim 10 $version $not_show_evolution
         
         done
