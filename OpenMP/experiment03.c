@@ -30,7 +30,7 @@ void writeFile(char* fileName, int w, int h, int z, bool first, double time , in
     if(first)   f = fopen(fileName, "w" );
     else f = fopen(fileName, "a" ); 
 
-	if(first) fprintf(f,"%d-%d-%d,",w , h, z);
+	if(first) fprintf(f,"%d-%d-%d,\n",w , h, z);
 
     // write the time
     fprintf(f,"%d,%f",n_core , time);

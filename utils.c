@@ -52,12 +52,15 @@ double elapsed_wtime(struct timeval start, struct timeval end) {
 }
 
 
-void writeFile(char* fileName, bool first, double time , int n_core){
+void writeFile(char* fileName, int w, int h, int z, bool first, double time , int n_core){
     FILE *f;
 
 
     if(first)   f = fopen(fileName, "w" );
     else f = fopen(fileName, "a" ); 
+
+	if(first) fprintf(f,"%d-%d-%d,\n",w , h, z);
+
 
     // write file
     fprintf(f,"%d,%f",n_core , time);
