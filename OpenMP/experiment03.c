@@ -19,19 +19,20 @@ double elapsed_wtime(struct timeval start, struct timeval end) {
 
     return (double)((end.tv_sec * 1000000 + end.tv_usec) - 
 		       (start.tv_sec * 1000000 + start.tv_usec))/1000;
-
-   
 }
 
 
-void writeFile(char* fileName, bool first, double time , int n_core){
+void writeFile(char* fileName, int w, int h, int z, bool first, double time , int n_core){
+
     FILE *f;
 
 
     if(first)   f = fopen(fileName, "w" );
     else f = fopen(fileName, "a" ); 
 
-    // write file
+	if(first) fprintf(f,"%d-%d-%d,",w , h, z);
+
+    // write the time
     fprintf(f,"%d,%f",n_core , time);
 
     fprintf(f,"\n");
@@ -175,7 +176,7 @@ void game(int w, int h, int t, int threads) {
 	char *fileName = (char*)malloc(50 * sizeof(char));
 	sprintf(fileName, "OpenMP/Results/Exp03-OMP-%d-%d-%d.csv", w, h, t);
 
-	writeFile(fileName, (threads==0 || threads==1), tot_time, threads);
+	writeFile(fileName, w, h, t, (threads==0 || threads==1), tot_time, threads);
 	free(fileName);
 
 

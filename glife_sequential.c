@@ -23,12 +23,14 @@ double elapsed_wtime(struct timeval start, struct timeval end) {
 }
 
 
-void writeFile(char* fileName, bool first, double time , int n_core){
+void writeFile(char* fileName , int w, int h, int z, bool first, double time , int n_core){
     FILE *f;
 
 
     if(first)   f = fopen(fileName, "w" );
     else f = fopen(fileName, "a" ); 
+
+	if(first) fprintf(f,"%d-%d-%d,",w , h, z);
 
     // write file
     fprintf(f,"%d,%f",n_core , time);
@@ -175,7 +177,7 @@ void game(int w, int h, int t) {
 	char *fileName = (char*)malloc(50 * sizeof(char));
 	sprintf(fileName, "Serial-%d-%d-%d.csv", w, h, t);
 
-	writeFile(fileName, true, tot_time, 0);
+	writeFile(fileName, w, h, t, true, tot_time, 0);
 	free(fileName);
 
 

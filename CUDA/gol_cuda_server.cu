@@ -80,12 +80,14 @@ double elapsed_wtime(struct timeval start, struct timeval end) {
 }
 
 
-void writeFile(char* fileName, bool first, double time , int n_core){
+void writeFile(char* fileName, int w, int h, int z, bool first, double time , int n_core){
     FILE *f;
 
 
     if(first)   f = fopen(fileName, "w" );
     else f = fopen(fileName, "a" );
+
+    if(first) fprintf(f,"%d-%d-%d,",w , h, z);
 
     // write file
     fprintf(f,"%d,%f",n_core , time);
@@ -241,7 +243,7 @@ void game(int nRows, int nCols, int timestep, int block_size ){
         char *fileName = (char*)malloc(50 * sizeof(char));
         sprintf(fileName, "Results/CUDA-%d-%d-%d.txt", nCols, nRows, timestep);
 
-        writeFile(fileName, (block_size==32), tot_time, block_size);
+        writeFile(fileName, nCols, nRows, timestep, (block_size==32), tot_time, block_size);
         free(fileName);
 
         //free GPU memory

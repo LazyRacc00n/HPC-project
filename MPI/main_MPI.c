@@ -389,7 +389,8 @@ void get_experiment_filename(int version, int num_nodes, char* folder_name){
 	(version == 2) ? strcpy(exp_folder,"experiment_V2") : strcpy(exp_folder,"experiment_V1");
 	
 	
-	char results_filename[250] = "/Exp-MPI-%d-%d-%d_V1.csv";
+	char results_filename[200];
+	(version == 2) ? strcpy(results_filename,"/Exp-MPI-%d-%d-%d_V2.csv") : strcpy(results_filename,"/Exp-MPI-%d-%d-%d_V1.csv");
 	char str_num_node[5];
 
 	strcat(folder_name, exp_folder);
@@ -462,16 +463,12 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	if (genBlock->rank == 0)
 	{
 
-		char *fileName = (char *)malloc(50 * sizeof(char));
+		char *fileName = (char *)malloc(200 * sizeof(char));
 		char folder_name[300] =  "MPI_Results/";
-		if (version == 1){
-
-			get_experiment_filename(version, num_nodes, folder_name);
-			sprintf(fileName, folder_name, nCols, nRows, time);
-		}
-		else
-			sprintf(fileName, "MPI_Results/Exp01-MPI-%d-%d-%d_V2.csv", nCols, nRows, time);
-
+		
+		get_experiment_filename(version, num_nodes, folder_name);
+		sprintf(fileName, folder_name, nCols, nRows, time);
+		
 		writeFile(fileName, genBlock->mpi_size == 2, tot_time, genBlock->mpi_size);
 	}
 
