@@ -282,7 +282,7 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 		get_experiment_filename(version, num_nodes, folder_name);
 		sprintf(fileName, folder_name, nCols, nRows, time);
 		
-		writeFile(fileName, nCols, nRows, time, genBlock->mpi_size == 2, tot_time, genBlock->mpi_size);
+		writeFile(fileName, nCols, nRows, time, (genBlock->mpi_size == 2 ||( num_nodes==4 && genBlock->mpi_size == 4 )|| (num_nodes == 8 && genBlock->mpi_size == 8) ) , tot_time, genBlock->mpi_size);
 	}
 
 	// free the derived datatype
