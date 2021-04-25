@@ -1,6 +1,15 @@
 #include "mpi.h"
 #include "../utils.h"
 
+#include <dirent.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 #define ALIVE 1
 #define DEAD 0

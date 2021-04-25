@@ -371,8 +371,42 @@ void evolve_block(struct gen_block *genBlock, unsigned int **next_genBlock, int 
 	
 }
 
+char *my_itoa(int num, char *str)
+{
+    if(str == NULL)
+		return NULL;
+        
+    sprintf(str, "%d", num);
+    return str;
+}
+
+
+void get_experiment_filename(int version, int num_nodes, char* folder_name){
+
+	struct stat st = {0};
+	char exp_folder[20];
+	
+	(version == 2) ? strcpy(exp_folder,"experiment_V2") : strcpy(exp_folder,"experiment_V1");
+	
+	
+	char results_filename[250] = "/Exp-MPI-%d-%d-%d_V1.csv";
+	char str_num_node[5];
+
+	strcat(folder_name, exp_folder);
+	if (stat(folder_name, &st) == -1) mkdir(folder_name,  0700);
+	
+	strcat(folder_name,"/Node-");
+	my_itoa(num_nodes, str_num_node);
+	
+	strcat(folder_name, str_num_node);
+			
+	if (stat(folder_name, &st) == -1) mkdir(folder_name,  0700);
+
+	strcat(folder_name, results_filename);
+}
+
 // call envolve and diaplay the evolution
-void game(struct gen_block *genBlock, int time, int nRows, int nCols, int version, bool exec_time)
+void game(struct gen_block *genBlock, int time, int nRows, int nCols, int version, bool exec_time, int num_nodes)
 {
 	int i, j, t;
 	//allocate the next gen used to compute the evolution of the next time step
@@ -423,13 +457,18 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 			tot_time += partial_time;
 		}
 	}
-
+	
+	
 	if (genBlock->rank == 0)
 	{
 
 		char *fileName = (char *)malloc(50 * sizeof(char));
-		if (version == 1)
-			sprintf(fileName, "MPI_Results/Exp01-MPI-%d-%d-%d_V1.csv", nCols, nRows, time);
+		char folder_name[300] =  "MPI_Results/";
+		if (version == 1){
+
+			get_experiment_filename(version, num_nodes, folder_name);
+			sprintf(fileName, folder_name, nCols, nRows, time);
+		}
 		else
 			sprintf(fileName, "MPI_Results/Exp01-MPI-%d-%d-%d_V2.csv", nCols, nRows, time);
 
@@ -459,11 +498,40 @@ int get_lower_neighbour(int size, int rank)
 	return (rank == size - 1) ? 0 : rank + 1;
 }
 
+
+int count_nodes(char filename[])
+{
+
+	int ch = 0;
+	int count = 0;
+	FILE *file;
+
+	if ((file = fopen(filename, "r")) == NULL)
+		return -1;
+
+	while (!feof(file))
+	{
+		ch = fgetc(file);
+		if (ch == '\n') count++;
+		
+	}
+
+	fclose(file);
+
+	return count;
+}
+
+
+
+
+
+
 int main(int argc, char **argv)
 {
 
 	int rank, size, err;
 	bool exec_time;
+	int num_nodes = count_nodes("host_list.txt");
 
 	//Parse Arguments
 	int nCols = 0, nRows = 0, time = 0, version = 0;
@@ -531,7 +599,7 @@ int main(int argc, char **argv)
 	init_and_allocate_block(&blockgen, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size, time);
 
 	MPI_Barrier(MPI_COMM_WORLD);
-	game(&blockgen, time, nRows, nCols, version, exec_time);
+	game(&blockgen, time, nRows, nCols, version, exec_time, num_nodes);
 
 	//-----------------------------------------------------------------------------------------------
 
