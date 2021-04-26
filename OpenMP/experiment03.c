@@ -174,7 +174,7 @@ void game(int w, int h, int t, int threads) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "OpenMP/Results/Exp03-OMP-%d-%d-%d.csv", w, h, t);
+	sprintf(fileName, "Results/Exp03-OMP-%d-%d-%d.csv", w, h, t);
 
 	writeFile(fileName, w, h, t, (threads==0 || threads==1), tot_time, threads);
 	free(fileName);

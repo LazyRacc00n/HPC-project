@@ -12,7 +12,7 @@ do
 
     for threads in "${THREADS[@]}"
     do
-        $executable $n_rows $n_cols $TIME $threads
+        ./$executable $n_rows $n_cols $TIME $threads
     done
 
 done
