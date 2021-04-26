@@ -1,6 +1,7 @@
 #!/bin/bash
 
-grid_dim_list=(100 500 1000 5000 10000)
+#grid_dim_list=(100 500 1000 5000 10000)
+grid_dim_list=(15000)
 
 display_versions_list=(1 2)
 

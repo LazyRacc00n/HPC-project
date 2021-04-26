@@ -131,9 +131,8 @@ __global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int 
 
 
         const int bx = blockIdx.x, by = blockIdx.y;
-    const int tx = threadIdx.x, ty = threadIdx.y;
+        const int tx = threadIdx.x, ty = threadIdx.y;
 
-        //TODO: capire se è da usaere blockDim.y o va bene
         const int i = by * blockDim.y + ty;
         const int j = bx * blockDim.x + tx;
 
