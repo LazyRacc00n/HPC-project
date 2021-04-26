@@ -216,7 +216,6 @@ void game(int nRows, int nCols, int timestep, int block_size ){
                 // Call Kernel on GPU
                 cuda_evolve<<<n_blocks, n_threads>>>(cuda_curr_gen, cuda_next_gen, nRows, nCols, block_size);
                 cudaDeviceSynchronize();
-
                 //swap cur_gen and next_gen when all the threads are done
                 swap(&cuda_curr_gen, &cuda_next_gen);
 
