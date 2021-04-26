@@ -240,7 +240,7 @@ void game(int nRows, int nCols, int timestep, int block_size ){
 
         // Save time execution
         char *fileName = (char*)malloc(50 * sizeof(char));
-        sprintf(fileName, "Results/CUDA-%d-%d-%d.txt", nCols, nRows, timestep);
+        sprintf(fileName, "Results/CUDA-%d-%d-%d.csv", nCols, nRows, timestep);
 
         writeFile(fileName, nCols, nRows, timestep, (block_size==32), tot_time, block_size);
         free(fileName);

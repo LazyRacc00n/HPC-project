@@ -12,7 +12,7 @@ do
 
     for threads in "${BLOCK_SIZE[@]}"
     do
-        ./$executable $n_rows $n_cols $TIME $BLOCK_SIZE
+        ./$executable $n_rows $n_cols $TIME $threads
     done
 
 done
