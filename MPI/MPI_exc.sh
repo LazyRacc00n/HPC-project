@@ -1,8 +1,8 @@
 #!/bin/bash
 
 grid_dim_list=(100 500 1000 5000 10000 15000)
-host_list=("hostfile/host_list_1.txt" "hostfile/host_list_2.txt" "hostfile/host_list_4.txt" "hostfile/host_list_8.txt")
-
+#host_list=("hostfile/host_list_1.txt" "hostfile/host_list_2.txt" "hostfile/host_list_4.txt" "hostfile/host_list_8.txt")
+host_list=("hostfile/host_list_1.txt")
 version=2
 
 not_show_evolution=1
@@ -23,7 +23,7 @@ do
     case $nodes in
         
         1)
-            list_number_processes=(2 4 8 16 32 64)
+            list_number_processes=(2 4 8 16 32 64 128 256)
             ;;
         2)
             list_number_processes=(2 4 8 16 32 64 128)
