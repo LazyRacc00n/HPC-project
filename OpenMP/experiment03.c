@@ -111,9 +111,9 @@ void free_gen(unsigned int **gen){
 */
 void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 	
-		int x,y,x1,y1,n, row, column;
+		int x,y,x1,y1,n;
         
-		#pragma omp parallel for  private(x,x1,y1,n, row, column)
+		#pragma omp parallel for  private(x,x1,y1,n) 
 		for ( y = 0; y < h; y++) 
         	for ( x = 0; x < w; x++) {
 		    	n = 0;
@@ -122,12 +122,10 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 		    	for (y1 = y - 1; y1 <= y + 1; y1++)
 			    	for (x1 = x - 1; x1 <= x + 1; x1++)
 
-						row = (y1 + h) % h;
-						column= (x1 + w) % w;
 						// skip the current cell [y, x]
-				    	if ((y != y1 || x != x1) && univ[row][column]) n++;
+				    	if ((y != y1 || x != x1) && univ[(y1 + h) % h][(x1 + w) % w]) n++;
 
-		    new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
+		    	new[y][x] = (n == 3 || (n == 2 && univ[y][x]));
 		
 	    }
 }
