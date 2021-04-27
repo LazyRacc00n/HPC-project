@@ -229,12 +229,8 @@ void init_and_allocate_block(struct gen_block *genBlock, int nRows_with_ghost, i
 
     //allocate memory for an array of pointers and then allocate memory for every row
     genBlock->block = allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols);
-    genBlock->next_genBlock = allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols);
 
     //Random Initialization of the gen assigned to each node
     init_gen_block(genBlock);
 
-    for (i = 0; i < genBlock->numRows_ghost; i++)
-        for (j = 0; j < genBlock->numCols; j++)
-            genBlock->next_genBlock[i][j] = DEAD;
 }

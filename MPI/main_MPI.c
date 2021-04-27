@@ -8,7 +8,7 @@
 #include "mpi_utils.h"
 
 
-void swap_grids(unsigned int ***old, unsigned int ***new) {
+void swap(unsigned int ***old, unsigned int ***new) {
     unsigned int **temp = *old;
 
     *old = *new;
@@ -181,7 +181,6 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 	//Update to current gen to the next gen
 	for (i = 1; i < rows; i++)
 	{
-
 		for (j = 0; j < cols; j++)
 		{
 
@@ -198,12 +197,6 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 	}
 	
 	
-	for (i = 1; i < genBlock->numRows_ghost - 1; i++)
-		for (j = 0; j < genBlock->numCols ; j++)
-			genBlock->block[i][j] = next_block[i][j];
-	
-	//swap_grids(&genBlock->block, &next_block);
-	
 }
 
 
@@ -213,14 +206,13 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 void game(struct gen_block *genBlock, int time, int nRows, int nCols, int version, bool exec_time, int num_nodes)
 {
 	int i, j, t;
-	//allocate the next gen used to compute the evolution of the next time step
-	//unsigned int **next_genBlock;
+
 	struct timeval start, end;
 	double partial_time = 0., tot_time = 0., send_time = 0.;
 	
-
+	//allocate the next gen used to compute the evolution of the next time step
 	unsigned int **next_genBlock;
-	next_genBlock= allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols);
+	next_genBlock= allocate_empty_gen(genBlock->numRows_ghost, nCols);
 	// create a derived datatype to send a row
 	MPI_Datatype row_block_type, row_block_without_ghost, block_type;
 
@@ -244,8 +236,8 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 			gettimeofday(&start, NULL);
 
 		evolve_block(genBlock, next_genBlock, nRows, nCols, row_block_type);
+		swap(&genBlock->block, &next_genBlock);
 		
-
 		if (version == 1)
 			display_v1(genBlock, nRows, nCols, row_block_without_ghost, t, exec_time);
 		else
@@ -267,7 +259,7 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 		printf("\n------- FINE --------\n");
 		char *fileName = (char *)malloc(200 * sizeof(char));
 		char folder_name[300] =  "MPI_Results/";
-		
+
 		get_experiment_filename(version, num_nodes, folder_name);
 		sprintf(fileName, folder_name, nCols, nRows, time);
 		
@@ -281,7 +273,7 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 
 	//free gens
 	free_gen(genBlock->block);
-	free_gen(genBlock->next_genBlock);
+	free_gen(next_genBlock);
 }
 
 
