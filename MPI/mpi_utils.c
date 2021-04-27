@@ -78,8 +78,8 @@ void print_buffer(struct gen_block *genBlock, unsigned int *buffer)
 
     for (x = 1; x < genBlock->numRows_ghost - 1; x++)
     {
-        for (y = 1; y < genBlock->numCols_ghost - 1; y++)
-            printf(*((buffer + x * genBlock->numCols_ghost) + y) == ALIVE ? "\033[07m  \033[m" : "  ");
+        for (y = 1; y < genBlock->numCols - 1; y++)
+            printf(*((buffer + x * genBlock->numCols) + y) == ALIVE ? "\033[07m  \033[m" : "  ");
         printf("\033[E");
     }
 }
@@ -133,7 +133,7 @@ void printbig_block(struct gen_block *genBlock, int t, char filename[])
 
     for (x = 1; x < genBlock->numRows_ghost - 1; x++)
     {
-        for (y = 0; y < genBlock->numCols_ghost; y++)
+        for (y = 0; y < genBlock->numCols; y++)
             fprintf(f, "%c", genBlock->block[x][y] ? 'x' : ' ');
 
         fprintf(f, "\n");
@@ -174,7 +174,7 @@ void print_block(struct gen_block *genBlock)
     printf("\033[H\033[J");
     for (x = 1; x < genBlock->numRows_ghost - 1; x++)
     {
-        for (y = 0; y < genBlock->numCols_ghost; y++)
+        for (y = 0; y < genBlock->numCols; y++)
             printf(genBlock->block[x][y] ? "\033[07m  \033[m" : "  ");
 
         printf("\033[E");
@@ -187,7 +187,7 @@ void init_gen_block(struct gen_block *genBlock)
     int i, j;
 
     for (i = 1; i < genBlock->numRows_ghost - 1; i++)
-        for (j = 0; j < genBlock->numCols_ghost; j++)
+        for (j = 0; j < genBlock->numCols; j++)
             genBlock->block[i][j] = rand() < RAND_MAX / 10 ? ALIVE : DEAD;
 }
 
@@ -220,7 +220,7 @@ void init_and_allocate_block(struct gen_block *genBlock, int nRows_with_ghost, i
 
     // initialize field of the struct that represent the block assigned to a node
     genBlock->numRows_ghost = nRows_with_ghost;
-    genBlock->numCols_ghost = nCols_with_Ghost;
+    genBlock->numCols = nCols_with_Ghost;
     genBlock->upper_neighbour = upper_neighbour;
     genBlock->lower_neighbour = lower_neighbour;
     genBlock->rank = rank;
@@ -228,13 +228,13 @@ void init_and_allocate_block(struct gen_block *genBlock, int nRows_with_ghost, i
     genBlock->time_step = time;
 
     //allocate memory for an array of pointers and then allocate memory for every row
-    genBlock->block = allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols_ghost);
-    genBlock->next_genBlock = allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols_ghost);
+    genBlock->block = allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols);
+    genBlock->next_genBlock = allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols);
 
     //Random Initialization of the gen assigned to each node
     init_gen_block(genBlock);
 
     for (i = 0; i < genBlock->numRows_ghost; i++)
-        for (j = 0; j < genBlock->numCols_ghost; j++)
+        for (j = 0; j < genBlock->numCols; j++)
             genBlock->next_genBlock[i][j] = DEAD;
 }

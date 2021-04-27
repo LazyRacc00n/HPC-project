@@ -29,7 +29,7 @@ void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype b
 	if (genBlock->rank != MPI_root)
 	{
 		int numRows = genBlock->numRows_ghost - 2;
-		int numCols = genBlock->numCols_ghost;
+		int numCols = genBlock->numCols;
 
 		unsigned int buff[numRows][numCols];
 
@@ -171,13 +171,13 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 	MPI_Send(&genBlock->block[genBlock->numRows_ghost - 2][0], 1, row_block_type, genBlock->lower_neighbour, 0, MPI_COMM_WORLD);
 
 	// receive from below using  buffer the ghost row as receiver
-	MPI_Recv(&genBlock->block[genBlock->numRows_ghost - 1][0], genBlock->numCols_ghost, MPI_INT, genBlock->lower_neighbour, 0, MPI_COMM_WORLD, &stat);
+	MPI_Recv(&genBlock->block[genBlock->numRows_ghost - 1][0], genBlock->numCols, MPI_INT, genBlock->lower_neighbour, 0, MPI_COMM_WORLD, &stat);
 
 	// receive from top using  the ghost row as receiver buffer
-	MPI_Recv(&genBlock->block[0][0], genBlock->numCols_ghost, MPI_INT, genBlock->upper_neighbour, 0, MPI_COMM_WORLD, &stat);
+	MPI_Recv(&genBlock->block[0][0], genBlock->numCols, MPI_INT, genBlock->upper_neighbour, 0, MPI_COMM_WORLD, &stat);
 
 	int rows = genBlock->numRows_ghost - 1;
-	int cols = genBlock->numCols_ghost;
+	int cols = genBlock->numCols;
 	//Update to current gen to the next gen
 	for (i = 1; i < rows; i++)
 	{
@@ -199,7 +199,7 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 	
 	
 	for (i = 1; i < genBlock->numRows_ghost - 1; i++)
-		for (j = 0; j < genBlock->numCols_ghost ; j++)
+		for (j = 0; j < genBlock->numCols ; j++)
 			genBlock->block[i][j] = next_block[i][j];
 	
 	//swap_grids(&genBlock->block, &next_block);
@@ -220,15 +220,15 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	
 
 	unsigned int **next_genBlock;
-	next_genBlock= allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols_ghost);
+	next_genBlock= allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols);
 	// create a derived datatype to send a row
 	MPI_Datatype row_block_type, row_block_without_ghost, block_type;
 
 	// for the envolve
-	MPI_Type_contiguous(genBlock->numCols_ghost, MPI_UNSIGNED, &row_block_type);
+	MPI_Type_contiguous(genBlock->numCols, MPI_UNSIGNED, &row_block_type);
 
 	//to send a block, thanks to use of MPI derived datatype
-	MPI_Type_vector(genBlock->numRows_ghost - 2, genBlock->numCols_ghost, genBlock->numCols_ghost, MPI_UNSIGNED, &block_type);
+	MPI_Type_vector(genBlock->numRows_ghost - 2, genBlock->numCols, genBlock->numCols, MPI_UNSIGNED, &block_type);
 
 	// for the display
 	MPI_Type_contiguous(nCols, MPI_UNSIGNED, &row_block_without_ghost);
@@ -350,14 +350,13 @@ int main(int argc, char **argv)
 
 	// Adding ghost rows and that allow communicate with neighbors.
 	int n_rows_local_with_ghost = n_rows_local + 2;
-	int n_cols_with_ghost = nCols;
 
 	int upper_neighbour = get_upper_neighbour(size, rank);
 	int lower_neighbour = get_lower_neighbour(size, rank);
 
 	struct gen_block blockgen;
 
-	init_and_allocate_block(&blockgen, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size, time);
+	init_and_allocate_block(&blockgen, n_rows_local_with_ghost, nCols, upper_neighbour, lower_neighbour, rank, size, time);
 
 	//MPI_Barrier(MPI_COMM_WORLD);
 	game(&blockgen, time, nRows, nCols, version, exec_time, num_nodes);

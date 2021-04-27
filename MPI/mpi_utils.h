@@ -18,7 +18,7 @@
 struct gen_block {
 
     int numRows_ghost; // number of rows of the local block + ghost rows
-    int numCols_ghost; // number of columns of the local block + ghost columns
+    int numCols; // number of columns of the local block + ghost columns
 
     int upper_neighbour; // rank of upper nodes
     int lower_neighbour; // rank of lower nodes
