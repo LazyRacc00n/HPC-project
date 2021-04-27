@@ -128,9 +128,6 @@ void evolve(unsigned int **univ, unsigned int **new, int w, int h) {
 		
 	    }
 }
- 
- 
- 
 
 void game(int w, int h, int t) {
 	int x,y,z;

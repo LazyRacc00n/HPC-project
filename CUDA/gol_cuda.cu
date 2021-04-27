@@ -98,22 +98,14 @@ void writeFile(char* fileName, int w, int h, int z, bool first, double time , in
 
 }
 
-__device__ int compute_neighbor(int i, int j, int nRows, int nCols){
-
-        // Guarda come vengono gestiti i bordi nell'originale
-        int x = i % nRows;
-        int y = j % nCols;
-        return  x * nCols + y;
-}
-
 
 //int tid = threadIdx.x + blockIdx.x * blockDim.x;
 // number of threds: ( N + number_thred_per_block) / number_thred_per_block
 
-//MEMORY COALESCED ACCESS --> improve performace taking per rows
+//MEMORY COALESCED ACCESS --> improve performace taking per columns
 
 /*A 2D matrix is stored as 1D in memory:
-        - in row-major layout, the element(x,y) ca be adressed as x*width+ y
+        - in row-major layout, the element(x,y) ca be adressed as x * width + y
         - A gen is composed by block, each block is composed by threads. All threads in same block have same block index.
         - to esure that  the extra threads do not do any work --> if(row<width && col<width) { --> written in the kernel
                                                                                                                                 then do work
@@ -192,15 +184,12 @@ void game(int nRows, int nCols, int timestep, int block_size ){
         // copy matrix from the host (CPU) to the device (GPU)
         cudaMemcpy(cuda_curr_gen, curr_gen, gen_size, cudaMemcpyHostToDevice);
 
-        // make a 2D grid of threads, with  block_size threads in total.
-        int grid_threads = (int) sqrt(block_size);
+        // make a 1D grid of threads, with  block_size threads in total.
         dim3 n_threads(block_size);
 
         // how many blocks from the grid dim, distribute the game board evenly 
-		if((nRows * nCols)%block_size == 0)
-        	dim3 n_blocks( (int) (nRows * nCols) / block_size );
-		else
-			dim3 n_blocks( (int) (nRows * nCols) / block_size );
+        dim3 n_blocks( (int) (nRows * nCols + n_threads.x -1) / n_threads.x );
+		
 
         if( nCols > 1000 ) printbig(curr_gen, nRows, nCols, 0);
 
@@ -216,7 +205,7 @@ void game(int nRows, int nCols, int timestep, int block_size ){
 
 
                 // Call Kernel on GPU
-                cuda_evolve<<<n_blocks, block_size>>>(cuda_curr_gen, cuda_next_gen, nRows, nCols, block_size);
+                cuda_evolve<<<n_blocks, n_threads>>>(cuda_curr_gen, cuda_next_gen, nRows, nCols, block_size);
                 cudaDeviceSynchronize();
                 //swap cur_gen and next_gen when all the threads are done
                 swap(&cuda_curr_gen, &cuda_next_gen);

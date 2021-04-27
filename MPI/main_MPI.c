@@ -256,7 +256,6 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	if (genBlock->rank == 0)
 	{
 
-		printf("\n------- FINE --------\n");
 		char *fileName = (char *)malloc(200 * sizeof(char));
 		char folder_name[300] =  "MPI_Results/";
 
@@ -284,10 +283,10 @@ int main(int argc, char **argv)
 
 	int rank, size, err;
 	bool exec_time;
-	int num_nodes = count_nodes("host_list.txt");
+	//int num_nodes = count_nodes("host_list.txt");
 
 	//Parse Arguments
-	int nCols = 0, nRows = 0, time = 0, version = 0;
+	int nCols = 0, nRows = 0, time = 0, version = 0, num_nodes=1;
 	if (argc > 1)
 		nCols = atoi(argv[1]);
 
@@ -299,9 +298,12 @@ int main(int argc, char **argv)
 
 	if (argc > 4)
 		version = atoi(argv[4]);
-
+	
 	if (argc > 5)
 		exec_time = (bool)atoi(argv[5]);
+
+	if (argc > 5)
+		num_nodes = atoi(argv[6]);
 
 	if (nCols <= 0)
 		nCols = 30;
@@ -311,6 +313,8 @@ int main(int argc, char **argv)
 
 	if (time <= 0)
 		time = 100;
+	
+
 
 	if (version <= 0 || version > 2)
 	{
