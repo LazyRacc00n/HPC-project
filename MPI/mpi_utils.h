@@ -14,7 +14,7 @@
 #define DEAD 0
 #define MPI_root 0
 
-//structure that represent a block assigned to a node
+//structure that represent a block assigned to a process
 struct gen_block {
 
     int numRows_ghost; // number of rows of the local block + ghost rows
@@ -28,7 +28,7 @@ struct gen_block {
     
     unsigned int **block; //matrix that represent the local gen
 
-    int time_step;
+    int time_step; // total number of timestep
     
 };
 

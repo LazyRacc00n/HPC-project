@@ -38,8 +38,6 @@ void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype b
 	else
 	{
 		//if I'm the root: print and receive the blocks of the other nodes
-		//print_buffer(genBlock->block)
-
 		if (!exec_time)
 		{
 			if (nCols > 1000 && (t == 0 || t == genBlock->time_step - 1))
@@ -54,7 +52,6 @@ void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype b
 		{
 			// I need know how much rows the root must receive, are different for some node
 			//For now, I can compute the number of rows of each node
-
 			int nRows_received = nRows / genBlock->mpi_size;
 			if (src == genBlock->mpi_size - 1)
 				nRows_received += nRows % genBlock->mpi_size;
@@ -163,7 +160,6 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 	int i, j, t, x, y;
 
 	MPI_Status stat;
-
 	// send first row of the block to the upper neighbour
 	MPI_Send(&genBlock->block[1][0], 1, row_block_type, genBlock->upper_neighbour, 0, MPI_COMM_WORLD);
 
@@ -228,7 +224,6 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	MPI_Type_commit(&row_block_type);
 	MPI_Type_commit(&row_block_without_ghost);
 	MPI_Type_commit(&block_type);
-
 
 	for (t = 0; t < time; t++)
 	{
