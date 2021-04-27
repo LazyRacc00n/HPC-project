@@ -8,7 +8,12 @@
 #include "mpi_utils.h"
 
 
+void swap_grids(unsigned int ***old, unsigned int ***new) {
+    unsigned int **temp = *old;
 
+    *old = *new;
+    *new = temp;
+}
 
 
 
@@ -24,7 +29,7 @@ void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype b
 	if (genBlock->rank != MPI_root)
 	{
 		int numRows = genBlock->numRows_ghost - 2;
-		int numCols = genBlock->numCols_ghost - 2;
+		int numCols = genBlock->numCols_ghost;
 
 		unsigned int buff[numRows][numCols];
 
@@ -152,7 +157,7 @@ void display_v1(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype r
 // Ghost Rows: In order to compute the envolve we need to send the first row to the upper neighbor and the last
 // row to the lower neighbour, thanks to the use of the top and bottom ghost rows.
 
-void evolve_block(struct gen_block *genBlock, unsigned int **next_genBlock, int nRows, int nCols, MPI_Datatype row_block_type)
+void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRows, int nCols, MPI_Datatype row_block_type)
 {
 
 	int i, j, t, x, y;
@@ -171,48 +176,33 @@ void evolve_block(struct gen_block *genBlock, unsigned int **next_genBlock, int 
 	// receive from top using  the ghost row as receiver buffer
 	MPI_Recv(&genBlock->block[0][0], genBlock->numCols_ghost, MPI_INT, genBlock->upper_neighbour, 0, MPI_COMM_WORLD, &stat);
 
-	//ghost colums:
-	// 		-copy last column to the fisrt column
-	// 		-copy the fisrt column to the last last column
-
-	for (i = 0; i < genBlock->numRows_ghost; i++)
-	{
-		genBlock->block[i][0] = genBlock->block[i][genBlock->numCols_ghost - 2];
-		genBlock->block[i][genBlock->numCols_ghost - 1] = genBlock->block[i][1];
-	}
-
+	int rows = genBlock->numRows_ghost - 1;
+	int cols = genBlock->numCols_ghost;
 	//Update to current gen to the next gen
-	for (i = 1; i < genBlock->numRows_ghost - 1; i++)
+	for (i = 1; i < rows; i++)
 	{
 
-		for (j = 1; j < genBlock->numCols_ghost - 1; j++)
+		for (j = 0; j < cols; j++)
 		{
 
 			int alive_neighbours = 0;
 
 			for (x = i - 1; x <= i + 1; x++)
 				for (y = j - 1; y <= j + 1; y++)
-					if ((i != x || j != y) && genBlock->block[x][y])
+					if ((i != x || j != y) && genBlock->block[x][ (y + nCols) % nCols ] )
 						alive_neighbours++;
 
-			if (genBlock->block[i][j] && alive_neighbours < 2)
-				next_genBlock[i][j] = DEAD;
-
-			if (genBlock->block[i][j] && (alive_neighbours == 2 || alive_neighbours == 3))
-				next_genBlock[i][j] = ALIVE;
-
-			if (alive_neighbours > 3)
-				next_genBlock[i][j] = DEAD;
-
-			if (!genBlock->block[i][j] && (alive_neighbours == 3))
-				next_genBlock[i][j] = ALIVE;
+			next_block[i][j] = (alive_neighbours == 3 || (alive_neighbours == 2 && genBlock->block[i][j]));
+		
 		}
 	}
-
+	
 	
 	for (i = 1; i < genBlock->numRows_ghost - 1; i++)
-		for (j = 1; j < genBlock->numCols_ghost - 1; j++)
-			genBlock->block[i][j] = next_genBlock[i][j];
+		for (j = 0; j < genBlock->numCols_ghost ; j++)
+			genBlock->block[i][j] = next_block[i][j];
+	
+	//swap_grids(&genBlock->block, &next_block);
 	
 }
 
@@ -224,13 +214,13 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 {
 	int i, j, t;
 	//allocate the next gen used to compute the evolution of the next time step
-	unsigned int **next_genBlock;
+	//unsigned int **next_genBlock;
 	struct timeval start, end;
 	double partial_time = 0., tot_time = 0., send_time = 0.;
 	
-	//Random Initialization of the gen assigned to each node
-	init_gen_block(genBlock);
 
+	unsigned int **next_genBlock;
+	next_genBlock= allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols_ghost);
 	// create a derived datatype to send a row
 	MPI_Datatype row_block_type, row_block_without_ghost, block_type;
 
@@ -238,7 +228,7 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	MPI_Type_contiguous(genBlock->numCols_ghost, MPI_UNSIGNED, &row_block_type);
 
 	//to send a block, thanks to use of MPI derived datatype
-	MPI_Type_vector(genBlock->numRows_ghost - 2, genBlock->numCols_ghost - 2, genBlock->numCols_ghost, MPI_UNSIGNED, &block_type);
+	MPI_Type_vector(genBlock->numRows_ghost - 2, genBlock->numCols_ghost, genBlock->numCols_ghost, MPI_UNSIGNED, &block_type);
 
 	// for the display
 	MPI_Type_contiguous(nCols, MPI_UNSIGNED, &row_block_without_ghost);
@@ -247,9 +237,6 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	MPI_Type_commit(&row_block_without_ghost);
 	MPI_Type_commit(&block_type);
 
-	
-
-	next_genBlock = allocate_empty_gen(genBlock->numRows_ghost, genBlock->numCols_ghost);
 
 	for (t = 0; t < time; t++)
 	{
@@ -257,6 +244,7 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 			gettimeofday(&start, NULL);
 
 		evolve_block(genBlock, next_genBlock, nRows, nCols, row_block_type);
+		
 
 		if (version == 1)
 			display_v1(genBlock, nRows, nCols, row_block_without_ghost, t, exec_time);
@@ -276,6 +264,7 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	if (genBlock->rank == 0)
 	{
 
+		printf("\n------- FINE --------\n");
 		char *fileName = (char *)malloc(200 * sizeof(char));
 		char folder_name[300] =  "MPI_Results/";
 		
@@ -292,7 +281,7 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 
 	//free gens
 	free_gen(genBlock->block);
-	free_gen(next_genBlock);
+	free_gen(genBlock->next_genBlock);
 }
 
 
@@ -361,7 +350,7 @@ int main(int argc, char **argv)
 
 	// Adding ghost rows and that allow communicate with neighbors.
 	int n_rows_local_with_ghost = n_rows_local + 2;
-	int n_cols_with_ghost = nCols + 2;
+	int n_cols_with_ghost = nCols;
 
 	int upper_neighbour = get_upper_neighbour(size, rank);
 	int lower_neighbour = get_lower_neighbour(size, rank);
@@ -370,7 +359,7 @@ int main(int argc, char **argv)
 
 	init_and_allocate_block(&blockgen, n_rows_local_with_ghost, n_cols_with_ghost, upper_neighbour, lower_neighbour, rank, size, time);
 
-	MPI_Barrier(MPI_COMM_WORLD);
+	//MPI_Barrier(MPI_COMM_WORLD);
 	game(&blockgen, time, nRows, nCols, version, exec_time, num_nodes);
 
 	//-----------------------------------------------------------------------------------------------

@@ -27,6 +27,7 @@ struct gen_block {
     int mpi_size; // total size of the communicator ( MPI_COMM_WORLD )
     
     unsigned int **block; //matrix that represent the local gen
+    unsigned int **next_genBlock;
 
     int time_step;
     

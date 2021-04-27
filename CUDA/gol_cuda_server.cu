@@ -133,8 +133,8 @@ __global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int 
         const int bx = blockIdx.x, by = blockIdx.y;
         const int tx = threadIdx.x, ty = threadIdx.y;
 
-        const int i = by * blockDim.y + ty;
-        const int j = bx * blockDim.x + tx;
+        const int j = by * blockDim.y + ty;
+        const int i = bx * blockDim.x + tx;
 
         //to esure that  the extra threads do not do any work
         if( !( i < nRows && j < nCols) ) return;
@@ -196,9 +196,9 @@ void game(int nRows, int nCols, int timestep, int block_size ){
         dim3 n_threads(grid_threads, grid_threads);
 
         // how many blocks from the grid dim
-        dim3 n_blocks;
-        n_blocks.x = ( nCols + n_threads.x - 1)/n_threads.x;
-        n_blocks.y = ( nRows + n_threads.y - 1)/n_threads.y;
+        dim3 n_blocks(  ( nRows + n_threads.x - 1)/n_threads.x, ( nCols + n_threads.y - 1)/n_threads.y);
+        //n_blocks.x = ( nCols + n_threads.x - 1)/n_threads.x;
+        //n_blocks.y = ( nRows + n_threads.y - 1)/n_threads.y;
 
         if( nCols > 1000 ) printbig(curr_gen, nRows, nCols, 0);
 
