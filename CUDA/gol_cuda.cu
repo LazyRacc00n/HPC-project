@@ -121,7 +121,7 @@ void writeFile(char* fileName, int w, int h, int z, bool first, double time , in
 */
 __global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int nRows, int nCols, int block_size){
 
-		const int game_size = nRows * nCols;
+	const int game_size = nRows * nCols;
 
         const int bx = blockIdx.x;
         const int tx = threadIdx.x;
@@ -133,18 +133,17 @@ __global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int 
 
         int nAliveNeig = 0;
 
-		// the column x
-		int x = idx % nCols;
+	// the column x
+	int x = idx % nCols;
+	// the row y: the yth element in the flatten array
+	int y = idx - x;
 
-		// the row y: the yth element in the flatten array
-		int y = idx - x;
+	//compute the neighbors indexes starting from x and y
+	int xLeft = ( x + nCols-1) %nCols;
+	int xRight = ( x + 1) %nCols;
 
-		//compute the neighbors indexes starting from x and y
-		int xLeft = ( x + nCols-1) %nCols;
-		int xRight = ( x + 1) %nCols;
-
-		int yTop = (y + game_size - nCols) % game_size;
-		int yBottom = (y + nCols) % game_size;
+	int yTop = (y + game_size - nCols) % game_size;
+	int yBottom = (y + nCols) % game_size;
 
         //calculate how many neighbors around 3x3 are alive
         nAliveNeig = curr_gen[ xLeft + yTop] + curr_gen[x + yTop] + curr_gen[xRight + yTop]
