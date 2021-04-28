@@ -172,7 +172,12 @@ void game(int w, int h, int t) {
 
     // Allocates storage
 	char *fileName = (char*)malloc(50 * sizeof(char));
-	sprintf(fileName, "Serial-%d-%d-%d.csv", w, h, t);
+
+	#ifdef VECT
+	sprintf(fileName, "Results_serial/Serial-vect-%d-%d-%d.csv", w, h, t);
+	#else
+	sprintf(fileName, "Results_serial/Serial-%d-%d-%d.csv", w, h, t);
+	#endif
 
 	writeFile(fileName, w, h, t, true, tot_time, 0);
 	free(fileName);

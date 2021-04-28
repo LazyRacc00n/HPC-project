@@ -30,10 +30,12 @@ SERIAL_FILE = glife_sequential.c
 #bin location after compilation
 BIN = bin
 
+VECT_FLAG = -DVECT
+
 #---------------------------------- COMPILATION -----------------------------------------
 
 
-all: bin_dir serial omp mpi 
+all: bin_dir serial_vect omp mpi serial_no_vect
 
 bin_dir:
 	mkdir -p $(BIN)
@@ -44,9 +46,11 @@ omp: $(OPENMP_DIR)/$(OMP_FILE)
 mpi: $(MPI_DIR)/$(MPI_FILE)
 	$(MPICC) $(MPI_DIR)/$(MPI_FILE) $(UTILS_FILE) $(MPI_DIR)/$(MPI_UTILS_FILE) -o $(BIN)/gol_mpi 
 
-serial: $(SERIAL_FILE) 
-	$(ICC) $(SERIAL_FILE) -o $(BIN)/gol_serial 
+serial_vect: $(SERIAL_FILE) 
+	$(ICC) $(VECT_FLAG)  $(SERIAL_FILE) -o $(BIN)/gol_serial 
 
+serial_no_vect: $(SERIAL_FILE)
+	$(ICC) -O0 $(SERIAL_FILE) -o $(BIN)/gol_serial_no_vect
 
 
 
