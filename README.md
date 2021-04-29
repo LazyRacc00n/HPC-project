@@ -117,3 +117,12 @@ In this case, the parameter <i>number_of_threads</i> must be a multiple of 32, a
 ```
 ./gol_cuda nRows nCols number_of_threads
 ```
+
+
+
+<b>Contributors:</b>
+<ul>
+ <li><a href="https://github.com/AlessandroCaroti">Alessandro Caroti</a></li>
+ <li><a href="https://github.com/simocampi">Simone Campisi</del></a></li>
+ <li><a href="https://github.com/LazyRacc00n">Jacopo Dapueto</a></li>
+</ul>
