@@ -38,6 +38,7 @@ In the folder in which are contained the files, <i>Project</i> for the serial, <
 </br>
 
 ### Compilation:
+</br>
 
 ##### No Vectorization:
 
