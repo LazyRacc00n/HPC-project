@@ -10,7 +10,6 @@ do
     n_rows=$dim
     n_cols=$dim
 
-    #echo $n_rows "x" $n_cols$
     for threads in "${BLOCK_SIZE[@]}"
     do
         ./$executable $n_rows $n_cols $TIME $threads
