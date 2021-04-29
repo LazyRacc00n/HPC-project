@@ -1,8 +1,8 @@
 #!/bin/bash
 
 grid_dim_list=(100 500 1000 5000 10000 15000)
-#host_list=("hostfile/host_list_1.txt" "hostfile/host_list_2.txt" "hostfile/host_list_4.txt" "hostfile/host_list_8.txt")
-host_list=("hostfile/host_list_1.txt")
+host_list=("hostfile/host_list_1.txt" "hostfile/host_list_2.txt" "hostfile/host_list_4.txt" "hostfile/host_list_8.txt")
+
 version=2
 
 not_show_evolution=1
