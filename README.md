@@ -122,7 +122,6 @@ In this case, the parameter <i>number_of_threads</i> must be a multiple of 32, a
 
 <b>Contributors:</b>
 <ul>
- <li><a href="https://github.com/AlessandroCaroti">Alessandro Caroti</a></li>
  <li><a href="https://github.com/simocampi">Simone Campisi</del></a></li>
  <li><a href="https://github.com/LazyRacc00n">Jacopo Dapueto</a></li>
 </ul>
