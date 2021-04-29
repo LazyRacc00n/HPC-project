@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -102,10 +101,10 @@ void writeFile(char* fileName, int w, int h, int z, bool first, double time , in
 //int tid = threadIdx.x + blockIdx.x * blockDim.x;
 // number of threds: ( N + number_thred_per_block) / number_thred_per_block
 
-//MEMORY COALESCED ACCESS --> improve performace taking per columns
+//MEMORY COALESCED ACCESS --> improve performace taking per rows
 
 /*A 2D matrix is stored as 1D in memory:
-        - in row-major layout, the element(x,y) ca be adressed as x * width + y
+        - in row-major layout, the element(x,y) ca be adressed as x*width+ y
         - A gen is composed by block, each block is composed by threads. All threads in same block have same block index.
         - to esure that  the extra threads do not do any work --> if(row<width && col<width) { --> written in the kernel
                                                                                                                                 then do work
@@ -121,7 +120,7 @@ void writeFile(char* fileName, int w, int h, int z, bool first, double time , in
 */
 __global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int nRows, int nCols, int block_size){
 
-	const int game_size = nRows * nCols;
+                const int game_size = nRows * nCols;
 
         const int bx = blockIdx.x;
         const int tx = threadIdx.x;
@@ -133,17 +132,18 @@ __global__ void cuda_evolve(unsigned int *curr_gen, unsigned int *next_gen, int 
 
         int nAliveNeig = 0;
 
-	// the column x
-	int x = idx % nCols;
-	// the row y: the yth element in the flatten array
-	int y = idx - x;
+                // the column x
+                int x = idx % nCols;
 
-	//compute the neighbors indexes starting from x and y
-	int xLeft = ( x + nCols-1) %nCols;
-	int xRight = ( x + 1) %nCols;
+                // the row y: the yth element in the flatten array
+                int y = idx - x;
 
-	int yTop = (y + game_size - nCols) % game_size;
-	int yBottom = (y + nCols) % game_size;
+                //compute the neighbors indexes starting from x and y
+                int xLeft = ( x + nCols-1) %nCols;
+                int xRight = ( x + 1) %nCols;
+
+                int yTop = (y + game_size - nCols) % game_size;
+                int yBottom = (y + nCols) % game_size;
 
         //calculate how many neighbors around 3x3 are alive
         nAliveNeig = curr_gen[ xLeft + yTop] + curr_gen[x + yTop] + curr_gen[xRight + yTop]
@@ -183,12 +183,12 @@ void game(int nRows, int nCols, int timestep, int block_size ){
         // copy matrix from the host (CPU) to the device (GPU)
         cudaMemcpy(cuda_curr_gen, curr_gen, gen_size, cudaMemcpyHostToDevice);
 
-        // make a 1D grid of threads, with  block_size threads in total.
+        // make a 2D grid of threads, with  block_size threads in total.
         dim3 n_threads(block_size);
 
-        // how many blocks from the grid dim, distribute the game board evenly 
+        // how many blocks from the grid dim, distribute the game board evenly
         dim3 n_blocks( (int) (nRows * nCols + n_threads.x -1) / n_threads.x );
-		
+
 
         if( nCols > 1000 ) printbig(curr_gen, nRows, nCols, 0);
 
@@ -262,23 +262,3 @@ int main(int c, char **v) {
 
         game(w, h, t, block_size);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

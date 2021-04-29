@@ -8,13 +8,6 @@
 #include "mpi_utils.h"
 
 
-void swap(unsigned int ***old, unsigned int ***new) {
-    unsigned int **temp = *old;
-
-    *old = *new;
-    *new = temp;
-}
-
 
 
 // VERSION 2 OF DISPLAY, WITH MPI_TYPE_VECTOR

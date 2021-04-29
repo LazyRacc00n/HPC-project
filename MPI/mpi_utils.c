@@ -31,6 +31,7 @@ int count_nodes(char filename[])
     return count;
 }
 
+
 void get_experiment_filename(int version, int num_nodes, char *folder_name)
 {
 
@@ -57,6 +58,15 @@ void get_experiment_filename(int version, int num_nodes, char *folder_name)
 
     strcat(folder_name, results_filename);
 }
+
+
+void swap(unsigned int ***old, unsigned int ***new) {
+    unsigned int **temp = *old;
+
+    *old = *new;
+    *new = temp;
+}
+
 
 // obtain the upper neighbour
 int get_upper_neighbour(int size, int rank)

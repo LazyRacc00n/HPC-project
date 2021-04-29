@@ -57,3 +57,5 @@ void init_and_allocate_block(struct gen_block *genBlock, int nRows_with_ghost, i
 unsigned int **allocate_empty_gen(int rows, int cols);
 
 void free_gen(unsigned int **gen);
+
+void swap(unsigned int ***old, unsigned int ***new);
