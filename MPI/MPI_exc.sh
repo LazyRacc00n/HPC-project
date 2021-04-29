@@ -55,7 +55,7 @@ do
             per_host=$(( num_process / nodes))
 
             printf "\n perhost: $per_host num_procceses: $num_process\n"
-
+            #execute all combination
             mpiexec -hostfile $host -perhost $per_host -np $num_process ./$bin_exec $grid_dim $grid_dim 10 $version $not_show_evolution $nodes
             
             

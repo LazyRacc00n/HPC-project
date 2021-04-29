@@ -1,15 +1,8 @@
-/*
- * The Game of Life
- *
- * https://www.geeksforgeeks.org/conways-game-life-python-implementation/
- * 
-*/
-
 #include "mpi_utils.h"
 
 
 
-
+// VERSION USED FOR THE EXPERIMENTS
 // VERSION 2 OF DISPLAY, WITH MPI_TYPE_VECTOR
 void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype block_type, int t, bool exec_time)
 {
@@ -30,8 +23,8 @@ void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype b
 	}
 	else
 	{
-		//if I'm the root: print and receive the blocks of the other nodes
-		if (!exec_time)
+		//if is the root: print and receive the blocks of the other nodes
+		if (!exec_time) // print if the flag is 0
 		{
 			if (nCols > 1000 && (t == 0 || t == genBlock->time_step - 1))
 				printbig_block(genBlock, t, filename);
@@ -43,7 +36,7 @@ void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype b
 		//Receive form other nodes ( excluding the root, 0 )
 		for (src = 1; src < genBlock->mpi_size; src++)
 		{
-			// I need know how much rows the root must receive, are different for some node
+			// I need to know how much rows the root must receive, are different for different node
 			//For now, I can compute the number of rows of each node
 			int nRows_received = nRows / genBlock->mpi_size;
 			if (src == genBlock->mpi_size - 1)
@@ -51,9 +44,10 @@ void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype b
 
 			unsigned int buffer[nRows_received][nCols];
 
+			//root receive from the other processes
 			MPI_Recv(&(buffer[0][0]), (nRows_received) * (nCols), MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
 
-			if (!exec_time)
+			if (!exec_time)// print if the flag is 0
 			{
 				if (nCols > 1000 && (t == 0 || t == genBlock->time_step - 1))
 					printbig_buffer_V2(nRows_received, nCols, buffer, filename);
@@ -84,7 +78,7 @@ void display_v1(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype r
 	//send data to the root, if I'm not the root
 	if (genBlock->rank != MPI_root)
 	{
-		//send all rows
+		//send row by row
 		for (i = 1; i < genBlock->numRows_ghost - 1; i++)
 			MPI_Send(&genBlock->block[i][1], 1, row_block_without_ghost, MPI_root, 0, MPI_COMM_WORLD);
 	}
@@ -165,9 +159,10 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 	// receive from top using  the ghost row as receiver buffer
 	MPI_Recv(&genBlock->block[0][0], genBlock->numCols, MPI_INT, genBlock->upper_neighbour, 0, MPI_COMM_WORLD, &stat);
 
+	//evolve computation
 	int rows = genBlock->numRows_ghost - 1;
 	int cols = genBlock->numCols;
-	//Update to current gen to the next gen
+	
 	for (i = 1; i < rows; i++)
 	{
 		for (j = 0; j < cols; j++)
@@ -177,7 +172,7 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 
 			for (x = i - 1; x <= i + 1; x++)
 				for (y = j - 1; y <= j + 1; y++)
-					if ((i != x || j != y) && genBlock->block[x][ (y + nCols) % nCols ] )
+					if ((i != x || j != y) && genBlock->block[x][ (y + nCols) % nCols ] ) // like the starting implementation
 						alive_neighbours++;
 
 			next_block[i][j] = (alive_neighbours == 3 || (alive_neighbours == 2 && genBlock->block[i][j]));
