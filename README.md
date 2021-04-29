@@ -26,8 +26,8 @@ bash name_of_the_script.sh
 
 ## Without Makefile and Script
 </br>
-In the folder in which are contained the files, <i>Project</i> for the serial, <i>MPI</i>, <i>OpenMp</i> and <i>CUDA</i> for the other.</br>
-Common execution parameters: </br>
+In the folder in which are contained the files, <i>Project</i> for the serial, <i>MPI</i>, <i>OpenMp</i> and <i>CUDA</i> for the other.</br></br>
+<b>Common execution parameters: </b></br>
 
 - <i> nRows, nCols </i> are respectiveli the number of rows and columns of the Game of Life grid. </br> 
 - <i> timesteps</i> are the number of time step with which execute the game.
@@ -84,6 +84,7 @@ mpiicc main_MPI.c ../utils.c mpi_utils.c -o gol_mpi
 
 #### Execution:
 </br>
+<b> MPI execution parameters:</b> </br></br>
 
 - host_list_n.txt is file that contains the list of the host used, and n must be replace with the number of nodes ( 1, 2, 4, 8). These files are located in the folder <i>MPI/hostfile</i>, and there is a file for each nuber of node.
 
