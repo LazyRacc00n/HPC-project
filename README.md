@@ -16,7 +16,7 @@ In the folder <i>Project</i> there is the makefile that compiles the OpenMP, MPI
 
 #### Execution:
 </br>
-In each folder <i> MPI</i>,<i>OpenMP</i> and <i> Project </i> there are the scripts bash that execute the program with the parameters mentioned in the <i> report </i>. The MPI script doesn't shows the evolution also for the small dimensions ( number of columns < 1000 ). If you want see the evolution on the terminal for small dimentions, changes, in the MPI script, the flag <i>not_show_evolution</i> from 1 to 0.</br>
+In each folder <i> MPI</i>,<i>OpenMP</i> and <i> Project </i> there are the scripts bash that execute the program with the parameters mentioned in the <i> report </i>. The MPI script doesn't shows the evolution also for the small dimensions ( number of columns < 1000 ). If you want see the evolution on the terminal for small dimentions, change in the MPI script, the flag <i>not_show_evolution</i> from 1 to 0.</br>
 To execute with the script, in the folder in which is located the script:</br></br>
 
 ```
@@ -29,7 +29,7 @@ bash name_of_the_script.sh
 In the folder in which are contained the files, <i>Project</i> for the serial, <i>MPI</i>, <i>OpenMp</i> and <i>CUDA</i> for the other.</br></br>
 <b>Common execution parameters: </b></br>
 
-- <i> nRows, nCols </i> are respectiveli the number of rows and columns of the Game of Life grid. </br> 
+- <i> nRows, nCols </i> are respectively the number of rows and columns of the Game of Life grid. </br> 
 - <i> timesteps</i> are the number of time step with which execute the game.
 </br></br>
 
