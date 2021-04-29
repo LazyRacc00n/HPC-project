@@ -1,7 +1,5 @@
 #include "mpi_utils.h"
 
-
-
 // VERSION USED FOR THE EXPERIMENTS
 // VERSION 2 OF DISPLAY, WITH MPI_TYPE_VECTOR
 void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype block_type, int t, bool exec_time)
@@ -47,7 +45,7 @@ void display_v2(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype b
 			//root receive from the other processes
 			MPI_Recv(&(buffer[0][0]), (nRows_received) * (nCols), MPI_UNSIGNED, src, 0, MPI_COMM_WORLD, &stat);
 
-			if (!exec_time)// print if the flag is 0
+			if (!exec_time) // print if the flag is 0
 			{
 				if (nCols > 1000 && (t == 0 || t == genBlock->time_step - 1))
 					printbig_buffer_V2(nRows_received, nCols, buffer, filename);
@@ -137,11 +135,10 @@ void display_v1(struct gen_block *genBlock, int nRows, int nCols, MPI_Datatype r
 	}
 }
 
-
 // Ghost Rows: In order to compute the envolve we need to send the first row to the upper neighbor and the last
 // row to the lower neighbour, thanks to the use of the top and bottom ghost rows.
 
-void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRows, int nCols, MPI_Datatype row_block_type)
+void evolve_block(struct gen_block *genBlock, unsigned int **next_block, int nRows, int nCols, MPI_Datatype row_block_type)
 {
 
 	int i, j, t, x, y;
@@ -162,7 +159,7 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 	//evolve computation
 	int rows = genBlock->numRows_ghost - 1;
 	int cols = genBlock->numCols;
-	
+
 	for (i = 1; i < rows; i++)
 	{
 		for (j = 0; j < cols; j++)
@@ -172,19 +169,13 @@ void evolve_block(struct gen_block *genBlock, unsigned int** next_block, int nRo
 
 			for (x = i - 1; x <= i + 1; x++)
 				for (y = j - 1; y <= j + 1; y++)
-					if ((i != x || j != y) && genBlock->block[x][ (y + nCols) % nCols ] ) // like the starting implementation
+					if ((i != x || j != y) && genBlock->block[x][(y + nCols) % nCols]) // like the starting implementation
 						alive_neighbours++;
 
 			next_block[i][j] = (alive_neighbours == 3 || (alive_neighbours == 2 && genBlock->block[i][j]));
-		
 		}
 	}
-	
-	
 }
-
-
-
 
 // call envolve and diaplay the evolution
 void game(struct gen_block *genBlock, int time, int nRows, int nCols, int version, bool exec_time, int num_nodes)
@@ -193,10 +184,10 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 
 	struct timeval start, end;
 	double partial_time = 0., tot_time = 0., send_time = 0.;
-	
+
 	//allocate the next gen used to compute the evolution of the next time step
 	unsigned int **next_genBlock;
-	next_genBlock= allocate_empty_gen(genBlock->numRows_ghost, nCols);
+	next_genBlock = allocate_empty_gen(genBlock->numRows_ghost, nCols);
 	// create a derived datatype to send a row
 	MPI_Datatype row_block_type, row_block_without_ghost, block_type;
 
@@ -220,7 +211,7 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 
 		evolve_block(genBlock, next_genBlock, nRows, nCols, row_block_type);
 		swap(&genBlock->block, &next_genBlock);
-		
+
 		if (version == 1)
 			display_v1(genBlock, nRows, nCols, row_block_without_ghost, t, exec_time);
 		else
@@ -234,18 +225,17 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 			tot_time += partial_time;
 		}
 	}
-	
-	
+
 	if (genBlock->rank == 0)
 	{
 
 		char *fileName = (char *)malloc(200 * sizeof(char));
-		char folder_name[300] =  "MPI_Results/";
+		char folder_name[300] = "MPI_Results/";
 
 		get_experiment_filename(version, num_nodes, folder_name);
 		sprintf(fileName, folder_name, nCols, nRows, time);
-		
-		writeFile(fileName, nCols, nRows, time, (genBlock->mpi_size == 2 ||( num_nodes==4 && genBlock->mpi_size == 4 )|| (num_nodes == 8 && genBlock->mpi_size == 8) ) , tot_time, genBlock->mpi_size);
+
+		writeFile(fileName, nCols, nRows, time, (genBlock->mpi_size == 2 || (num_nodes == 4 && genBlock->mpi_size == 4) || (num_nodes == 8 && genBlock->mpi_size == 8)), tot_time, genBlock->mpi_size);
 	}
 
 	// free the derived datatype
@@ -258,18 +248,14 @@ void game(struct gen_block *genBlock, int time, int nRows, int nCols, int versio
 	free_gen(next_genBlock);
 }
 
-
-
-
 int main(int argc, char **argv)
 {
 
 	int rank, size, err;
 	bool exec_time;
-	//int num_nodes = count_nodes("host_list.txt");
 
 	//Parse Arguments
-	int nCols = 0, nRows = 0, time = 0, version = 0, num_nodes=1;
+	int nCols = 0, nRows = 0, time = 0, version = 0, num_nodes = 1;
 	if (argc > 1)
 		nCols = atoi(argv[1]);
 
@@ -281,7 +267,7 @@ int main(int argc, char **argv)
 
 	if (argc > 4)
 		version = atoi(argv[4]);
-	
+
 	if (argc > 5)
 		exec_time = (bool)atoi(argv[5]);
 
@@ -296,8 +282,6 @@ int main(int argc, char **argv)
 
 	if (time <= 0)
 		time = 100;
-	
-
 
 	if (version <= 0 || version > 2)
 	{
