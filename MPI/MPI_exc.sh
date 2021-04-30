@@ -1,8 +1,8 @@
 #!/bin/bash
 
 grid_dim_list=(100 500 1000 5000 10000 15000)
-#host_list=("hostfile/host_list_1.txt" "hostfile/host_list_2.txt" "hostfile/host_list_4.txt" "hostfile/host_list_8.txt")
-host_list=("hostfile/host_list_1.txt")
+host_list=("hostfile/host_list_1.txt" "hostfile/host_list_2.txt" "hostfile/host_list_4.txt" "hostfile/host_list_8.txt")
+
 version=2
 
 not_show_evolution=1
@@ -55,7 +55,7 @@ do
             per_host=$(( num_process / nodes))
 
             printf "\n perhost: $per_host num_procceses: $num_process\n"
-
+            #execute all combination
             mpiexec -hostfile $host -perhost $per_host -np $num_process ./$bin_exec $grid_dim $grid_dim 10 $version $not_show_evolution $nodes
             
             

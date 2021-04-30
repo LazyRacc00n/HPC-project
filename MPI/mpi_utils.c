@@ -9,28 +9,6 @@ char *my_itoa(int num, char *str)
     return str;
 }
 
-int count_nodes(char filename[])
-{
-
-    int ch = 0;
-    int count = 0;
-    FILE *file;
-
-    if ((file = fopen(filename, "r")) == NULL)
-        return -1;
-
-    while (!feof(file))
-    {
-        ch = fgetc(file);
-        if (ch == '\n')
-            count++;
-    }
-
-    fclose(file);
-
-    return count;
-}
-
 void get_experiment_filename(int version, int num_nodes, char *folder_name)
 {
 
@@ -56,6 +34,14 @@ void get_experiment_filename(int version, int num_nodes, char *folder_name)
         mkdir(folder_name, 0700);
 
     strcat(folder_name, results_filename);
+}
+
+void swap(unsigned int ***old, unsigned int ***new)
+{
+    unsigned int **temp = *old;
+
+    *old = *new;
+    *new = temp;
 }
 
 // obtain the upper neighbour
@@ -232,5 +218,4 @@ void init_and_allocate_block(struct gen_block *genBlock, int nRows_with_ghost, i
 
     //Random Initialization of the gen assigned to each node
     init_gen_block(genBlock);
-
 }

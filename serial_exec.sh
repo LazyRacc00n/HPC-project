@@ -10,16 +10,10 @@ executable="bin/gol_serial"
 
 for dim in "${GAME_DIM[@]}"
 do
-
-    $executable $dim $dim $TIME
-    
-    
+    $executable $dim $dim $TIME   
 done
-
 
 for dim in "${GAME_DIM[@]}"
 do
-
     $executable_no_vect $dim $dim $TIME
-
 done

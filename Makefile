@@ -4,7 +4,7 @@
 # Intel C compiler 
 ICC = icc 
 
-# Intel C compiler, with MPI support
+# MPI Intel C compiler
 MPICC = mpiicc
 
 
