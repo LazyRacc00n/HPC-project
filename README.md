@@ -9,12 +9,12 @@ Parallelization of the Game of Life  in openMP, MPI and CUDA
 
 </br>
 
-#### Compilation:
+#### Compilation
 </br>
 In the folder <i>Project</i> there is the makefile that compiles the OpenMP, MPI, the sequential version repectively in the folder <i>OpenMP</i>, <i> MPI</i> and <i>Project</i>. So, is possible to compile these file with the <i>make</i> command from bash. All the bin files will be located in the folder <i>bin</i>.
 </br></br>
 
-#### Execution:
+#### Execution
 </br>
 In each folder <i> MPI</i>,<i>OpenMP</i> and <i> Project </i> there are the scripts bash that execute the program with the parameters mentioned in the <i> report </i>. The MPI script doesn't shows the evolution also for the small dimensions ( number of columns < 1000 ). If you want see the evolution on the terminal for small dimentions, change in the MPI script, the flag <i>not_show_evolution</i> from 1 to 0.</br>
 To execute with the script, in the folder in which is located the script:</br></br>
