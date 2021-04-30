@@ -34,56 +34,56 @@ In the folder in which are contained the files, <i>Project</i> for the serial, <
 </br></br>
 
 
-## Serial:
+## Serial
 </br>
 
-### Compilation:
+### Compilation
 </br>
 
-##### No Vectorization:
+##### No Vectorization
 
 ```
 icc -O0 glife_sequential.c -o gol_sequntial
 ```
 
-##### With Vectorization:
+##### With Vectorization
 
 ```
 icc -O3 -ipo -xHost glife_sequential.c -o gol_sequntial
 ```
 
-### Execution:
+### Execution
 
 ```
 ./gol_sequential nRows nCols timesteps
 ```
 
 
-## OpenMP:
+## OpenMP
 </br>
 
-### Compilation:
+### Compilation
 
 ```
 icc experiment03.c -qopenmp -o gol_omp
 ```
 
-### Execution:
+### Execution
 
 ```
 ./gol_omp nRows nCols timesteps number_of_threads
 ```
 
-## MPI:
+## MPI
 </br>
 
-#### Compilation:
+#### Compilation
 
 ```
 mpiicc main_MPI.c ../utils.c mpi_utils.c -o gol_mpi
 ```
 
-#### Execution:
+#### Execution
 </br>
 <b> MPI execution parameters:</b> </br></br>
 
@@ -103,14 +103,14 @@ mpiexec -hostfile host_list_n.txt -perhost n_process_per_host -np tot_procesesse
 </br>
 
 
-## CUDA:
+## CUDA
 </br>
 
-#### Compilation:
+#### Compilation
 ```
 nvcc  gol_cuda.cu -o gol_cuda
 ```
-#### Execution:
+#### Execution
 
 In this case, the parameter <i>number_of_threads</i> must be a multiple of 32, and the max is 1024.
 
